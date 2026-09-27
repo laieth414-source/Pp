@@ -144,26 +144,26 @@ export const SubmitPromptModal: React.FC<SubmitPromptModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fade-in"
+      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 overflow-y-auto animate-fade-in"
       dir={isAr ? 'rtl' : 'ltr'}
       onClick={onClose}
     >
       {/* Modal Box */}
       <div
-        className="bg-[#0c0d14] border border-purple-500/30 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl shadow-purple-950/40 relative my-8 text-white"
+        className="bg-[#13141c] border border-white/10 rounded-2xl p-6 sm:p-8 max-w-xl w-full shadow-xl relative my-8 text-[#f8fafc]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between pb-5 border-b border-white/[0.08]">
+        <div className="flex items-start justify-between pb-5 border-b border-white/10">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-600/20 border border-violet-500/30 text-violet-300 text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-violet-400" />
               <span>{isAr ? 'مجتمع المبدعين' : 'Creator Community'}</span>
             </div>
             <h3 className="text-xl sm:text-2xl font-bold text-white pt-1">
               {isAr ? 'شارك إبداعك - إضافة برومبت جديد' : 'Share Your Craft - Add New Prompt'}
             </h3>
-            <p className="text-slate-400 text-xs sm:text-sm">
+            <p className="text-[#94a3b8] text-xs sm:text-sm">
               {isAr
                 ? 'انشر أوامرك الأصلية ليتمكن آلاف المصممين والمطورين من استكشافها وتجربتها.'
                 : 'Publish your original prompts for thousands of creators to discover and use.'}
@@ -172,7 +172,7 @@ export const SubmitPromptModal: React.FC<SubmitPromptModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white transition-colors border border-white/[0.06] shrink-0"
+            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white transition-colors border border-white/10 shrink-0"
             aria-label={isAr ? 'إغلاق' : 'Close'}
           >
             <X className="w-5 h-5" />
@@ -329,7 +329,7 @@ export const SubmitPromptModal: React.FC<SubmitPromptModalProps> = ({
 
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:via-indigo-500 hover:to-pink-500 shadow-[0_0_25px_rgba(168,85,247,0.45)] transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-violet-600 hover:bg-violet-500 shadow-sm transition-colors flex items-center gap-2 cursor-pointer active:scale-95"
             >
               <Send className="w-4 h-4" />
               <span>{isAr ? 'نشر البرومبت الآن' : 'Publish Prompt Now'}</span>

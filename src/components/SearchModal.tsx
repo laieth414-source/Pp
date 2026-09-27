@@ -51,16 +51,16 @@ export const SearchModal: React.FC<SearchModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4 sm:p-6">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-black/80 transition-opacity"
         onClick={onClose}
       />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-2xl rounded-2xl backdrop-blur-2xl bg-[#090A14]/95 border border-purple-500/30 shadow-[0_20px_70px_rgba(0,0,0,0.85)] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-2xl rounded-2xl bg-[#13141c] border border-white/10 shadow-xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Search Input Bar */}
-        <div className="flex items-center px-4 py-3.5 border-b border-white/[0.08]">
-          <Search className="w-5 h-5 text-purple-400 shrink-0" />
+        <div className="flex items-center px-4 py-3.5 border-b border-white/10">
+          <Search className="w-5 h-5 text-violet-400 shrink-0" />
           <input
             type="text"
             value={query}

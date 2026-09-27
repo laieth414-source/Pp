@@ -84,20 +84,20 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
     >
       {/* Dark Ambient Backdrop */}
       <div
-        className="fixed inset-0 bg-black/90 backdrop-blur-xl transition-opacity"
+        className="fixed inset-0 bg-black/80 transition-opacity"
         onClick={onClose}
       />
 
       {/* Main Solid Opaque Modal Box */}
-      <div className="relative w-full max-w-6xl rounded-3xl bg-[#0c0d14] border border-purple-500/30 shadow-2xl shadow-purple-950/50 overflow-hidden z-10 my-4 sm:my-8 text-white transition-all">
+      <div className="relative w-full max-w-6xl rounded-2xl bg-[#0e0f17] border border-white/10 shadow-xl overflow-hidden z-10 my-4 sm:my-8 text-[#f8fafc] transition-all">
         
         {/* Top Bar matching Mockup */}
-        <div className="flex items-center justify-between px-6 sm:px-10 py-5 border-b border-white/[0.06] bg-white/[0.01]">
+        <div className="flex items-center justify-between px-6 sm:px-10 py-4 border-b border-white/10 bg-[#13141c]">
           {/* Right in RTL: Sawihaa Logo with sparkle */}
           <div className="flex items-center gap-2.5">
-            <span className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-500 shadow-md shadow-purple-500/30">
-                <Sparkles className="w-4 h-4 text-white" />
+            <span className="text-xl sm:text-2xl font-black tracking-tight text-[#f8fafc] flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-violet-600 text-white shadow-sm">
+                <Sparkles className="w-4 h-4" />
               </span>
               <span>سَوّيها</span>
             </span>
@@ -108,7 +108,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
             {onOpenAuth && (
               <button
                 onClick={() => onOpenAuth('signup')}
-                className="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-md shadow-purple-600/30 active:scale-95"
+                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-violet-600 hover:bg-violet-500 transition-colors shadow-sm active:scale-95"
               >
                 {isAr ? 'إنشاء حساب' : 'Sign Up'}
               </button>
@@ -116,7 +116,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white transition-colors border border-white/[0.06]"
+              className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white transition-colors border border-white/10"
               aria-label={isAr ? 'إغلاق' : 'Close'}
             >
               <X className="w-5 h-5" />
@@ -125,12 +125,12 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
         </div>
 
         {/* Modal Core Two-Column Body */}
-        <div className="p-6 sm:p-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+        <div className="p-5 sm:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
             
             {/* Left Column in RTL / Visual Showcase Card */}
             <div className="lg:col-span-6 w-full flex flex-col items-center">
-              <div className="relative w-full aspect-[4/5] sm:aspect-square max-h-[520px] rounded-3xl p-3 bg-gradient-to-b from-[#141526] to-[#0A0B14] border-2 border-purple-500/40 shadow-[0_0_50px_rgba(168,85,247,0.3)] group overflow-hidden transition-all duration-300">
+              <div className="relative w-full aspect-[4/5] sm:aspect-square max-h-[520px] rounded-2xl p-2.5 bg-[#13141c] border border-white/10 group overflow-hidden transition-all duration-200">
                 
                 {/* Ambient Internal Glow */}
                 <div className="absolute inset-0 bg-radial from-purple-600/10 to-transparent pointer-events-none" />

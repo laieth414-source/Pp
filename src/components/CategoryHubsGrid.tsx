@@ -109,41 +109,33 @@ export const CategoryHubsGrid: React.FC<CategoryHubsGridProps> = ({
               <div
                 key={hub.id}
                 onClick={() => onSelectHub(hub.id)}
-                className={`group relative rounded-3xl p-6 sm:p-7 backdrop-blur-xl bg-[#0B0C15]/85 border border-white/[0.08] ${accentBorder} transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-lg hover:shadow-2xl overflow-hidden flex flex-col justify-between min-h-[220px]`}
-                style={{
-                  boxShadow: hub.accentGlow ? `0 0 0 0 ${hub.accentGlow}` : undefined,
-                }}
+                className="group relative rounded-2xl p-5 sm:p-6 bg-[#13141c] border border-white/10 hover:border-violet-500/40 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md overflow-hidden flex flex-col justify-between min-h-[200px]"
               >
-                {/* Radial Glow Overlay on Hover */}
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}
-                />
-
                 {/* Card Top Row: Icon + Prompt Count Badge */}
                 <div className="relative z-10 flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-white/[0.05] border border-white/10 flex items-center justify-center group-hover:border-purple-500/50 group-hover:bg-purple-950/40 transition-all shadow-inner">
+                  <div className="w-11 h-11 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center group-hover:border-violet-500/40 transition-colors">
                     {renderIcon(hub.iconName)}
                   </div>
 
-                  <span className="px-3 py-1 rounded-full text-xs font-mono font-medium bg-white/[0.04] group-hover:bg-purple-900/30 text-purple-200 border border-white/[0.08] group-hover:border-purple-500/40 transition-all">
+                  <span className="px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-white/[0.04] text-violet-300 border border-white/10">
                     {formatCount(count)}
                   </span>
                 </div>
 
                 {/* Card Center: Title & Description */}
-                <div className="relative z-10 mt-6 space-y-2">
-                  <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-purple-200 transition-colors flex items-center gap-2">
+                <div className="relative z-10 mt-5 space-y-1.5">
+                  <h3 className="text-base sm:text-lg font-bold text-[#f8fafc] group-hover:text-violet-300 transition-colors flex items-center gap-2">
                     <span>{isAr ? hub.titleAr : (hub.titleEn || hub.titleAr)}</span>
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-400 group-hover:text-slate-300 transition-colors leading-relaxed line-clamp-2">
+                  <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed line-clamp-2">
                     {isAr ? hub.descriptionAr : (hub.descriptionEn || hub.descriptionAr)}
                   </p>
                 </div>
 
                 {/* Card Bottom: Entry Action Link */}
-                <div className="relative z-10 mt-5 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs font-semibold text-slate-400 group-hover:text-purple-300 transition-colors">
+                <div className="relative z-10 mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-[#94a3b8] group-hover:text-violet-300 transition-colors">
                   <span>{isAr ? 'دخول القسم واستعراض البرومبتات' : 'Explore Category Hub'}</span>
-                  <div className="w-7 h-7 rounded-full bg-white/[0.04] group-hover:bg-purple-600/30 flex items-center justify-center transition-all group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
+                  <div className="w-7 h-7 rounded-full bg-white/[0.04] group-hover:bg-violet-600/30 flex items-center justify-center transition-all">
                     {isAr ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
                   </div>
                 </div>

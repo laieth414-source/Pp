@@ -97,12 +97,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-black/80 transition-opacity"
         onClick={onClose}
       />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-md rounded-3xl backdrop-blur-2xl bg-[#090A14]/95 border border-purple-500/30 shadow-[0_20px_70px_rgba(0,0,0,0.85)] p-6 sm:p-8 z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md rounded-2xl bg-[#13141c] border border-white/10 shadow-xl p-6 sm:p-8 z-10 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Close Button */}
         <button

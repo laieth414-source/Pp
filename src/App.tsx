@@ -133,6 +133,22 @@ export default function App() {
     return () => unsubscribeAuth();
   }, []);
 
+  // Listen for #admin route in URL
+  useEffect(() => {
+    const checkAdminRoute = () => {
+      if (window.location.hash === '#admin') {
+        if (isAdminAuthenticated) {
+          setIsAdminOpen(true);
+        } else {
+          setIsAdminAuthGateOpen(true);
+        }
+      }
+    };
+    checkAdminRoute();
+    window.addEventListener('hashchange', checkAdminRoute);
+    return () => window.removeEventListener('hashchange', checkAdminRoute);
+  }, [isAdminAuthenticated]);
+
   // 2. Initial Firebase connectivity & seeding
   useEffect(() => {
     testFirebaseConnection().then((connected) => {
@@ -509,7 +525,7 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen bg-[#07080D] text-slate-100 selection:bg-purple-600/30 selection:text-purple-200 transition-colors duration-200 ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
+    <div className={`min-h-screen bg-[#090a0f] text-[#f8fafc] selection:bg-violet-600/30 selection:text-violet-200 transition-colors duration-200 ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
       
       {/* Dynamic Announcement Top Bar */}
       <AnnouncementBar
@@ -518,25 +534,19 @@ export default function App() {
         lang={lang}
       />
 
-      {/* Ambient Deep Radial Violet Glows */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] bg-gradient-to-b from-purple-900/10 via-violet-950/5 to-transparent blur-[160px] pointer-events-none -z-10" />
-
-      {/* A. Floating Glass Navbar with Real Firebase Auth */}
+      {/* A. Clean Minimal Header */}
       <Navbar
         lang={lang}
         branding={siteSettings.branding}
         currentUser={currentUser}
         onLogoutUser={handleLogoutFirebaseUser}
         onGoogleLogin={handleGoogleLoginDirect}
-        onToggleLang={toggleLanguage}
-        onOpenSearch={() => setIsSearchOpen(true)}
         onOpenAuth={handleOpenAuth}
         onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
         onGoHome={() => {
           setActiveHubId(null);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
-        onOpenAdmin={handleOpenAdminTrigger}
       />
 
       <main>
@@ -619,6 +629,7 @@ export default function App() {
         lang={lang}
         branding={siteSettings.branding}
         footerSettings={siteSettings.footer}
+        onOpenAdmin={handleOpenAdminTrigger}
       />
 
       {/* Interactive Modals */}
@@ -701,35 +712,34 @@ export default function App() {
         onTriggerToast={triggerToast}
       />
 
-      {/* Bottom Sticky Status / Admin Pill Controls */}
-      <div className="fixed bottom-6 right-6 rtl:right-auto rtl:left-6 z-40 flex items-center gap-2.5">
+      {/* Desktop Only: Bottom Sticky Status / Admin Pill Controls (Hidden completely on mobile) */}
+      <div className="hidden md:flex fixed bottom-6 right-6 rtl:right-auto rtl:left-6 z-40 items-center gap-2.5">
         {/* Firebase Cloud Sync Badge */}
         <div
-          className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full bg-[#090A14]/90 border border-purple-500/30 text-[11px] text-purple-300 backdrop-blur-xl shadow-lg"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-[#13141c] border border-white/10 text-[11px] text-[#94a3b8] shadow-md"
           title={isFirebaseConnected ? 'Firebase Firestore متصل بالسحابة' : 'Firebase Offline mode'}
         >
           <Cloud className={`w-3.5 h-3.5 ${isFirebaseConnected ? 'text-emerald-400' : 'text-amber-400'}`} />
           <span>{lang === 'ar' ? 'فايربيس: متصل' : 'Firebase: Live'}</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
         </div>
 
-        {/* Persistent Floating Quick Admin Toggle Button */}
+        {/* Desktop Quick Admin Toggle Button */}
         <button
           onClick={handleOpenAdminTrigger}
-          className="group flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#0D0E1C]/90 hover:bg-purple-950 border border-purple-500/50 hover:border-purple-400 text-purple-200 hover:text-white shadow-[0_0_25px_rgba(168,85,247,0.4)] backdrop-blur-xl transition-all duration-300 cursor-pointer active:scale-95"
-          title={lang === 'ar' ? 'لوحة تحكم وإدارة المنصة المحمية' : 'Protected Admin CMS Control'}
+          className="group flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#13141c] hover:bg-[#1c1d29] border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white shadow-md transition-all duration-200 cursor-pointer active:scale-95"
+          title={lang === 'ar' ? 'لوحة تحكم وإدارة المنصة' : 'Admin CMS Control'}
         >
-          <div className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center group-hover:rotate-90 transition-transform duration-500">
-            <Settings className="w-3.5 h-3.5 text-purple-300" />
+          <div className="w-4 h-4 rounded-full bg-white/[0.06] flex items-center justify-center">
+            <Settings className="w-3 h-3 text-violet-400" />
           </div>
-          <span className="text-xs font-bold font-cairo tracking-wide">
-            {lang === 'ar' ? 'لوحة الإدارة' : 'Admin CMS'}
+          <span className="text-xs font-semibold font-cairo">
+            {lang === 'ar' ? 'الإدارة' : 'Admin'}
           </span>
           <span
-            className={`w-2 h-2 rounded-full ${
-              isAdminAuthenticated ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+            className={`w-1.5 h-1.5 rounded-full ${
+              isAdminAuthenticated ? 'bg-emerald-400' : 'bg-amber-400'
             }`}
-            title={isAdminAuthenticated ? (lang === 'ar' ? 'تمت المصادقة' : 'Authenticated') : (lang === 'ar' ? 'محمية بكلمة مرور' : 'Protected')}
           />
         </button>
       </div>
@@ -737,7 +747,7 @@ export default function App() {
       {/* Global Toast Notification */}
       {toastMessage && (
         <div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] backdrop-blur-xl bg-purple-950/85 border border-purple-500/50 text-purple-100 px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 text-sm transition-all duration-300 animate-in fade-in slide-in-from-bottom-5 pointer-events-none select-none"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] bg-[#1a1c29] border border-violet-500/40 text-[#f8fafc] px-5 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs transition-all duration-200 animate-in fade-in slide-in-from-bottom-3 pointer-events-none select-none"
           dir={lang === 'ar' ? 'rtl' : 'ltr'}
         >
           <span>{toastMessage}</span>

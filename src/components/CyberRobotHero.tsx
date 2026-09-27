@@ -68,18 +68,7 @@ export const CyberRobotHero: React.FC<CyberRobotHeroProps> = ({ lang }) => {
         }
       }}
     >
-      {/* Soft Ambient Violet Glow Behind Robot Silhouette */}
-      <div
-        className="absolute inset-4 rounded-full pointer-events-none -z-10 blur-[85px] transition-all duration-500"
-        style={{
-          background: isFlashing
-            ? 'radial-gradient(circle at 50% 50%, rgba(192, 132, 252, 0.5) 0%, rgba(168, 85, 247, 0.35) 50%, transparent 75%)'
-            : 'radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.3) 0%, rgba(147, 51, 234, 0.15) 50%, transparent 70%)',
-        }}
-      />
-      <div className="absolute top-1/4 -right-2 w-52 h-52 bg-fuchsia-600/15 rounded-full blur-[70px] pointer-events-none -z-10 animate-pulse-glow" />
-      <div className="absolute bottom-6 -left-2 w-52 h-52 bg-violet-600/15 rounded-full blur-[70px] pointer-events-none -z-10" />
-
+      {/* Badges and robot rendered with clean performant surfaces */}
       {/* Badge 1: Top right (above head) */}
       <div
         className="absolute -top-3 right-0 sm:right-2 z-20 pointer-events-auto transition-transform duration-300"
@@ -89,10 +78,9 @@ export const CyberRobotHero: React.FC<CyberRobotHeroProps> = ({ lang }) => {
             : undefined,
         }}
       >
-        <div className="backdrop-blur-xl bg-white/[0.05] border border-purple-500/20 px-3.5 py-1.5 rounded-full text-xs text-purple-200 shadow-lg flex items-center gap-2 hover:border-purple-400/40 hover:bg-white/[0.08] transition-all whitespace-nowrap">
+        <div className="bg-[#13141c] border border-violet-500/30 px-3.5 py-1.5 rounded-full text-xs text-violet-200 shadow-md flex items-center gap-2 hover:border-violet-400/50 hover:bg-[#1a1c29] transition-all whitespace-nowrap">
           <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-400" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-400" />
           </span>
           <span className="font-semibold tracking-wide">
             {isAr ? '✨ أكثر من 100 ألف برومبت' : '✨ 100k+ Verified Prompts'}
@@ -113,7 +101,7 @@ export const CyberRobotHero: React.FC<CyberRobotHeroProps> = ({ lang }) => {
           handleClick();
         }}
       >
-        <div className="backdrop-blur-xl bg-white/[0.05] border border-purple-500/20 px-3.5 py-1.5 rounded-full text-xs text-purple-200 shadow-lg flex items-center gap-2 hover:border-purple-400/40 hover:bg-white/[0.08] transition-all cursor-pointer whitespace-nowrap">
+        <div className="bg-[#13141c] border border-violet-500/30 px-3.5 py-1.5 rounded-full text-xs text-violet-200 shadow-md flex items-center gap-2 hover:border-violet-400/50 hover:bg-[#1a1c29] transition-all cursor-pointer whitespace-nowrap">
           <span className="font-medium tracking-wide">
             {isAr ? PROMPT_TIPS[tipIndex].ar : PROMPT_TIPS[tipIndex].en}
           </span>

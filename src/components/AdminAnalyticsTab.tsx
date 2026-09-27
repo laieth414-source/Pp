@@ -168,10 +168,10 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* KPI 1: Average Prompts Copied per Day */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-xl relative overflow-hidden group hover:border-purple-500/40 transition-all">
-          <div className="flex items-center justify-between text-slate-400 text-xs">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-violet-500/40 transition-colors">
+          <div className="flex items-center justify-between text-[#94a3b8] text-xs">
             <span>{isAr ? 'معدل النسخ اليومي' : 'Avg. Copied / Day'}</span>
-            <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+            <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center text-violet-400">
               <Copy className="w-4 h-4" />
             </div>
           </div>
@@ -188,8 +188,8 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
         </div>
 
         {/* KPI 2: Total Platform Visitors */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-xl relative overflow-hidden group hover:border-indigo-500/40 transition-all">
-          <div className="flex items-center justify-between text-slate-400 text-xs">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-violet-500/40 transition-colors">
+          <div className="flex items-center justify-between text-[#94a3b8] text-xs">
             <span>{isAr ? 'إجمالي الزيارات' : 'Total Visits'}</span>
             <div className="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
               <Eye className="w-4 h-4" />
@@ -208,16 +208,16 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
         </div>
 
         {/* KPI 3: Registered Community Creators */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-xl relative overflow-hidden group hover:border-fuchsia-500/40 transition-all">
-          <div className="flex items-center justify-between text-slate-400 text-xs">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-violet-500/40 transition-colors">
+          <div className="flex items-center justify-between text-[#94a3b8] text-xs">
             <span>{isAr ? 'المبدعون المسجلون' : 'Verified Creators'}</span>
-            <div className="w-8 h-8 rounded-xl bg-fuchsia-500/10 flex items-center justify-center text-fuchsia-400">
+            <div className="w-8 h-8 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-black text-white font-mono">١,٢٨٠</span>
-            <span className="text-[11px] font-semibold text-purple-400 flex items-center">
+            <span className="text-[11px] font-semibold text-violet-400 flex items-center">
               <ArrowUpRight className="w-3 h-3" />
               <span>+١٢٪</span>
             </span>
@@ -228,8 +228,8 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
         </div>
 
         {/* KPI 4: Total Verified Prompts */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-xl relative overflow-hidden group hover:border-pink-500/40 transition-all">
-          <div className="flex items-center justify-between text-slate-400 text-xs">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-violet-500/40 transition-colors">
+          <div className="flex items-center justify-between text-[#94a3b8] text-xs">
             <span>{isAr ? 'إجمالي البرومبتات النشطة' : 'Active Prompts'}</span>
             <div className="w-8 h-8 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400">
               <Sparkles className="w-4 h-4" />

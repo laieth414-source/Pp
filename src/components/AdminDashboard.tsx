@@ -244,24 +244,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-2xl flex flex-col overflow-hidden animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] bg-[#090a0f] flex flex-col overflow-hidden animate-in fade-in duration-200"
       dir={isAr ? 'rtl' : 'ltr'}
     >
       {/* Top Header Bar */}
-      <header className="h-16 px-3 sm:px-6 border-b border-white/10 bg-[#090A14] flex items-center justify-between shrink-0 gap-2">
+      <header className="h-16 px-3 sm:px-6 border-b border-white/10 bg-[#13141c] flex items-center justify-between shrink-0 gap-2">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.5)] shrink-0">
-            <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-white animate-spin-slow" />
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center shrink-0">
+            <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-violet-400" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-sm sm:text-base md:text-lg font-black text-white flex items-center gap-1.5 truncate">
+            <h1 className="text-sm sm:text-base md:text-lg font-black text-[#f8fafc] flex items-center gap-1.5 truncate">
               <span className="truncate">{isAr ? 'لوحة التحكم (CMS)' : 'Master CMS Admin'}</span>
               <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <span>{isAr ? 'ربط فوري' : 'Live'}</span>
               </span>
             </h1>
-            <p className="text-[11px] text-slate-400 hidden lg:block truncate">
+            <p className="text-[11px] text-[#94a3b8] hidden lg:block truncate">
               {isAr
                 ? 'تحكم بنسبة 100% بكافة عناصر المنصة: الهوية، النصوص، الأقسام، والبرومبتات.'
                 : 'Full direct control over branding, content, directory hubs, and prompt moderation.'}
@@ -273,10 +273,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* Export button */}
           <button
             onClick={handleExportConfig}
-            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-slate-300 hover:text-white transition-all text-xs flex items-center gap-1.5 cursor-pointer min-h-[38px]"
+            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-[#94a3b8] hover:text-white transition-all text-xs flex items-center gap-1.5 cursor-pointer min-h-[38px]"
             title={isAr ? 'تصدير نسخة احتياطية' : 'Export JSON Backup'}
           >
-            <Download className="w-3.5 h-3.5 text-purple-400" />
+            <Download className="w-3.5 h-3.5 text-violet-400" />
             <span className="hidden md:inline">{isAr ? 'تصدير JSON' : 'Export'}</span>
           </button>
 
@@ -304,7 +304,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* Close / Return to Live Preview button */}
           <button
             onClick={onClose}
-            className="violet-glow-btn px-3 py-2 sm:px-4 sm:py-2 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer shadow-lg active:scale-95 min-h-[38px]"
+            className="bg-violet-600 hover:bg-violet-500 px-3 py-2 sm:px-4 sm:py-2 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 min-h-[38px] transition-colors"
           >
             <Eye className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">{isAr ? 'معاينة المنصة' : 'Live Preview'}</span>
@@ -323,20 +323,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </header>
 
       {/* Main Body: Tabs Navigation & Content */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-[#090a0f]">
         
         {/* Navigation Tabs (Sidebar on desktop, smooth horizontal-scrolling chip bar on mobile) */}
-        <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/10 bg-[#07080F]/95 p-2 sm:p-3 md:p-4 shrink-0 flex md:flex-col items-center md:items-stretch gap-2 overflow-x-auto no-scrollbar scrollbar-none pb-2 px-2">
+        <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/10 bg-[#0e0f17] p-2 sm:p-3 md:p-4 shrink-0 flex md:flex-col items-center md:items-stretch gap-2 overflow-x-auto no-scrollbar scrollbar-none pb-2 px-2">
           
           <button
             onClick={() => setActiveTab('branding')}
             className={`shrink-0 min-h-[42px] md:min-h-0 md:w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'branding'
-                ? 'bg-purple-600/30 border border-purple-500 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.25)]'
+                ? 'bg-violet-600/30 border border-violet-500 text-violet-200'
                 : 'text-slate-400 hover:text-white hover:bg-white/[0.04] bg-white/[0.02] md:bg-transparent border border-white/[0.05] md:border-transparent'
             }`}
           >
-            <Paintbrush className="w-4 h-4 text-purple-400 shrink-0" />
+            <Paintbrush className="w-4 h-4 text-violet-400 shrink-0" />
             <span>{isAr ? 'الهوية والعلامة التجارية' : 'Branding & Identity'}</span>
           </button>
 
@@ -344,7 +344,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             onClick={() => setActiveTab('homepage')}
             className={`shrink-0 min-h-[42px] md:min-h-0 md:w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'homepage'
-                ? 'bg-purple-600/30 border border-purple-500 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.25)]'
+                ? 'bg-violet-600/30 border border-violet-500 text-violet-200'
                 : 'text-slate-400 hover:text-white hover:bg-white/[0.04] bg-white/[0.02] md:bg-transparent border border-white/[0.05] md:border-transparent'
             }`}
           >
@@ -356,7 +356,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             onClick={() => setActiveTab('categories')}
             className={`shrink-0 min-h-[42px] md:min-h-0 md:w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'categories'
-                ? 'bg-purple-600/30 border border-purple-500 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.25)]'
+                ? 'bg-violet-600/30 border border-violet-500 text-violet-200'
                 : 'text-slate-400 hover:text-white hover:bg-white/[0.04] bg-white/[0.02] md:bg-transparent border border-white/[0.05] md:border-transparent'
             }`}
           >

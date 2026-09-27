@@ -124,13 +124,7 @@ export const CategoryHubView: React.FC<CategoryHubViewProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Hub Header Box */}
-        <div className="relative rounded-3xl p-6 sm:p-8 backdrop-blur-2xl bg-gradient-to-br from-[#0e0f1c] via-[#090a14] to-[#07080e] border border-purple-500/30 shadow-2xl overflow-hidden">
-          {/* Subtle Ambient Radial Light */}
-          <div
-            className="absolute top-0 right-1/4 w-[400px] h-[200px] rounded-full blur-[100px] pointer-events-none -z-10"
-            style={{ backgroundColor: currentHub.accentGlow || 'rgba(168, 85, 247, 0.4)' }}
-          />
-
+        <div className="relative rounded-2xl p-6 sm:p-8 bg-[#13141c] border border-white/10 shadow-md overflow-hidden">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             
             {/* Left: Back button + Title + Tagline */}
@@ -168,7 +162,7 @@ export const CategoryHubView: React.FC<CategoryHubViewProps> = ({
               <div className="self-start md:self-center shrink-0">
                 <button
                   onClick={onOpenSubmitModal}
-                  className="violet-glow-btn px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white tracking-wide flex items-center gap-2 cursor-pointer shadow-lg active:scale-95"
+                  className="bg-violet-600 hover:bg-violet-500 px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white tracking-wide flex items-center gap-2 cursor-pointer shadow-sm active:scale-95 transition-colors min-h-[40px]"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>{isAr ? 'شارك برومبت في هذا القسم' : 'Add Prompt to this Hub'}</span>
@@ -179,11 +173,11 @@ export const CategoryHubView: React.FC<CategoryHubViewProps> = ({
           </div>
 
           {/* Scoped Controls Bar inside this Category */}
-          <div className="mt-6 pt-6 border-t border-white/[0.08] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div className="mt-6 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
             
             {/* Scoped Search Input */}
             <div className="relative flex-1 max-w-md">
-              <div className="relative flex items-center rounded-xl bg-white/[0.03] border border-white/10 focus-within:border-purple-500/60 transition-all px-3 py-2">
+              <div className="relative flex items-center rounded-xl bg-white/[0.03] border border-white/10 focus-within:border-violet-500/60 transition-all px-3 py-2">
                 <Search className="w-4 h-4 text-slate-400 shrink-0" />
                 <input
                   type="text"
@@ -210,7 +204,7 @@ export const CategoryHubView: React.FC<CategoryHubViewProps> = ({
             {/* Quick Model Filter Pills */}
             {availableModels.length > 0 && (
               <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none select-none">
-                <span className="text-[11px] text-slate-400 hidden lg:inline flex items-center gap-1 font-mono">
+                <span className="text-[11px] text-[#94a3b8] hidden lg:inline flex items-center gap-1 font-mono">
                   <Filter className="w-3 h-3" />
                   <span>{isAr ? 'المحرك:' : 'Model:'}</span>
                 </span>
@@ -219,8 +213,8 @@ export const CategoryHubView: React.FC<CategoryHubViewProps> = ({
                   onClick={() => setSelectedModelFilter('all')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer ${
                     selectedModelFilter === 'all'
-                      ? 'bg-purple-600/30 border border-purple-500 text-purple-200'
-                      : 'bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-white'
+                      ? 'bg-violet-600 text-white border border-violet-500'
+                      : 'bg-white/[0.03] border border-white/10 text-[#94a3b8] hover:text-white'
                   }`}
                 >
                   {isAr ? 'الكل' : 'All'}
@@ -232,8 +226,8 @@ export const CategoryHubView: React.FC<CategoryHubViewProps> = ({
                     onClick={() => setSelectedModelFilter(model)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer whitespace-nowrap ${
                       selectedModelFilter === model
-                        ? 'bg-purple-600/30 border border-purple-500 text-purple-200'
-                        : 'bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-white'
+                        ? 'bg-violet-600 text-white border border-violet-500'
+                        : 'bg-white/[0.03] border border-white/10 text-[#94a3b8] hover:text-white'
                     }`}
                   >
                     {model}
