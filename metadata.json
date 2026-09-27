@@ -1,0 +1,6 @@
+{
+  "name": "سَوّيها | Sawihaa",
+  "description": "المنصة الأولى لبرومبتات الذكاء الاصطناعي - اكتشف، انسخ، وأبدع بأقوى برومبتات Midjourney وFlux وكافة نماذج الذكاء الاصطناعي العالمية.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
