@@ -20,10 +20,11 @@ export interface PromptItem {
   titleEn: string;
   promptText: string;
   negativePrompt?: string;
-  model: 'Midjourney v6.1' | 'Flux.1 Pro' | 'Kling AI v1.5' | 'Runway Gen-3' | 'GPT-4o / Claude' | 'Suno v3.5';
-  category: 'image' | 'video' | 'text' | 'audio' | 'code' | 'agents';
-  aspectRatio: '16:9' | '1:1' | '9:16' | '4:5' | '21:9';
-  seed: string;
+  model: string;
+  category: string;
+  hubId?: 'portrait' | 'cinematic' | 'cyberpunk' | 'anime' | '3d-design' | 'code-dev' | string;
+  aspectRatio: '16:9' | '1:1' | '9:16' | '4:5' | '21:9' | string;
+  seed?: string;
   stylize?: number;
   chaos?: number;
   steps?: number;
@@ -33,13 +34,73 @@ export interface PromptItem {
   isSaved?: boolean;
   tags: string[];
   creator: Creator;
-  visualType: 'cyber_oasis' | 'mecha_warrior' | 'luxury_hypercar' | 'digital_fashion' | 'cinematic_director' | 'ancient_futuristic' | 'neon_dragon' | 'ai_code_agent';
+  visualType: 'cyber_oasis' | 'mecha_warrior' | 'luxury_hypercar' | 'digital_fashion' | 'cinematic_director' | 'ancient_futuristic' | 'neon_dragon' | 'ai_code_agent' | string;
   featured?: boolean;
   createdAt: string;
+  imageUrl?: string;
+}
+
+export interface HubCategory {
+  id: string;
+  titleAr: string;
+  titleEn: string;
+  descriptionAr: string;
+  descriptionEn: string;
+  iconName: string;
+  gradient?: string;
+  accentBorder?: string;
+  accentGlow?: string;
+  sampleTag?: string;
+}
+
+export interface BrandingSettings {
+  siteName: string;
+  logoText: string;
+  logoImage: string;
+  slogan: string;
+}
+
+export interface HeroSettings {
+  badge: string;
+  title: string;
+  titleHighlight: string;
+  subtitle: string;
+  searchPlaceholder: string;
+  exploreBtnText: string;
+  howItWorksBtnText: string;
+}
+
+export interface AnnouncementSettings {
+  isEnabled: boolean;
+  text: string;
+}
+
+export interface FooterSettings {
+  aboutText: string;
+  copyright: string;
+}
+
+export interface SiteSettings {
+  branding: BrandingSettings;
+  hero: HeroSettings;
+  announcement: AnnouncementSettings;
+  footer: FooterSettings;
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  avatar: string;
+  role: 'admin' | 'creator' | 'member';
+  status: 'active' | 'suspended';
+  promptsCount: number;
+  joinedDate: string;
 }
 
 export interface CategoryInfo {
-  id: 'image' | 'video' | 'text' | 'audio' | 'code' | 'agents';
+  id: 'image' | 'video' | 'text' | 'audio' | 'code' | 'agents' | string;
   titleAr: string;
   titleEn: string;
   subtitleAr: string;
@@ -49,3 +110,4 @@ export interface CategoryInfo {
   popularTags: string[];
   gradient: string;
 }
+

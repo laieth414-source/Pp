@@ -53,7 +53,7 @@ export const CyberRobotHero: React.FC<CyberRobotHeroProps> = ({ lang }) => {
   return (
     /* Relative auto-centering container for robot and neatly arranged floating badges */
     <div
-      className="relative flex items-center justify-center min-w-[320px] max-w-[480px] mx-auto select-none py-8 px-4"
+      className="relative flex items-center justify-center min-w-[280px] max-w-[380px] mx-auto select-none py-3 sm:py-4 px-3"
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
@@ -122,7 +122,7 @@ export const CyberRobotHero: React.FC<CyberRobotHeroProps> = ({ lang }) => {
 
       {/* Robot Silhouette Container: Mirrored horizontally to face right towards headline */}
       <div
-        className={`relative w-full max-w-[360px] sm:max-w-[420px] aspect-square flex items-center justify-center cursor-pointer transition-all duration-300 ${
+        className={`relative w-full max-w-[300px] sm:max-w-[360px] aspect-square flex items-center justify-center cursor-pointer transition-all duration-300 ${
           isFlashing ? 'scale-95' : 'hover:scale-[1.01]'
         }`}
         style={{
@@ -141,7 +141,7 @@ export const CyberRobotHero: React.FC<CyberRobotHeroProps> = ({ lang }) => {
           src="https://i.postimg.cc/6p96svf6/futuristic-robot-listening-music-headphones.png"
           alt={isAr ? 'روبوت سايبر مستقبلي يرتدي سماعات' : 'Futuristic Cyber Robot with Headphones'}
           referrerPolicy="no-referrer"
-          className="w-full h-full max-h-[460px] object-contain object-center scale-x-[-1] pointer-events-none transition-all duration-300"
+          className="w-full h-full max-h-[340px] sm:max-h-[380px] object-contain object-center scale-x-[-1] pointer-events-none transition-all duration-300"
           style={{
             filter: isFlashing
               ? 'drop-shadow(0 0 55px rgba(216, 70, 239, 0.75)) drop-shadow(0 0 45px rgba(168, 85, 247, 0.9))'

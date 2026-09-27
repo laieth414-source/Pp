@@ -36,19 +36,19 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
   };
 
   return (
-    <section id="categories" className="py-16 sm:py-20 relative">
+    <section id="categories" className="py-8 sm:py-10 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-8 gap-3">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold mb-3">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-semibold mb-2">
               <span>{isAr ? 'ركائز المنصة الست' : 'The 6 Core Pillars'}</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               {isAr ? 'استكشف حسب التصنيف' : 'Explore by Category'}
             </h2>
-            <p className="text-slate-400 text-sm sm:text-base mt-2 max-w-xl">
+            <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-lg">
               {isAr
                 ? 'مجموعة متكاملة تغطي كافة مجالات الإبداع بالذكاء الاصطناعي مع معايير دقيقة لكل تصنيف.'
                 : 'Curated prompt collections across all creative AI disciplines with verified output benchmarks.'}

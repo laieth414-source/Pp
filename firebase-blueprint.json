@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "Prompt": {
+      "title": "Prompt",
+      "description": "AI prompt item with generation parameters and metadata",
+      "type": "object",
+      "properties": {
+        "titleAr": { "type": "string", "maxLength": 200 },
+        "titleEn": { "type": "string", "maxLength": 200 },
+        "promptText": { "type": "string", "maxLength": 5000 },
+        "negativePrompt": { "type": "string", "maxLength": 2000 },
+        "model": { "type": "string", "maxLength": 100 },
+        "category": { "type": "string", "maxLength": 100 },
+        "hubId": { "type": "string", "maxLength": 100 },
+        "aspectRatio": { "type": "string", "maxLength": 20 },
+        "likes": { "type": "number" },
+        "saves": { "type": "number" },
+        "tags": { "type": "array" },
+        "visualType": { "type": "string", "maxLength": 100 },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 100 },
+        "imageUrl": { "type": "string", "maxLength": 1000 }
+      },
+      "required": ["titleAr", "promptText", "model", "category"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile in the platform",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "username": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 255 },
+        "avatar": { "type": "string", "maxLength": 1000 },
+        "role": { "type": "string", "enum": ["admin", "creator", "member"] },
+        "status": { "type": "string", "enum": ["active", "suspended"] },
+        "promptsCount": { "type": "number" },
+        "joinedDate": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Prompt hub category definition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "titleAr": { "type": "string", "maxLength": 150 },
+        "titleEn": { "type": "string", "maxLength": 150 },
+        "descriptionAr": { "type": "string", "maxLength": 500 },
+        "descriptionEn": { "type": "string", "maxLength": 500 },
+        "iconName": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["id", "titleAr", "titleEn"]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global website configuration and copy",
+      "type": "object",
+      "properties": {
+        "branding": { "type": "object" },
+        "hero": { "type": "object" },
+        "announcement": { "type": "object" },
+        "footer": { "type": "object" }
+      }
+    }
+  },
+  "firestore": {
+    "/prompts/{promptId}": {
+      "schema": "Prompt",
+      "description": "Collection of community and featured prompts"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles and platform members"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Categories and specialized prompt hubs"
+    },
+    "/settings/{settingId}": {
+      "schema": "SiteSettings",
+      "description": "Site global preferences, announcements, and branding"
+    }
+  }
+}

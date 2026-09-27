@@ -7,12 +7,14 @@ interface FeaturedSpotlightProps {
   prompts: PromptItem[];
   lang: Language;
   onOpenDetail: (prompt: PromptItem) => void;
+  onCopyPrompt?: (promptText: string) => void;
 }
 
 export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({
   prompts,
   lang,
   onOpenDetail,
+  onCopyPrompt,
 }) => {
   const featuredPrompts = prompts.filter((p) => p.featured);
   const [selectedIdx, setSelectedIdx] = useState(0);
@@ -25,23 +27,26 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({
     navigator.clipboard.writeText(current.promptText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    if (onCopyPrompt) {
+      onCopyPrompt(current.promptText);
+    }
   };
 
   return (
-    <section id="featured" className="py-16 sm:py-20 relative">
+    <section id="featured" className="py-8 sm:py-10 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-8 gap-3">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/25 text-violet-300 text-xs font-semibold mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-violet-500/10 border border-violet-500/25 text-violet-300 text-[11px] font-semibold mb-2">
+              <Sparkles className="w-3 h-3 text-violet-400" />
               <span>{isAr ? 'مختارات النخبة' : 'Curated Elite Spotlight'}</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               {isAr ? 'البرومبتات المميزة فائقة التعقيد' : 'Featured Multi-Parameter Prompts'}
             </h2>
-            <p className="text-slate-400 text-sm sm:text-base mt-2 max-w-xl">
+            <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-lg">
               {isAr
                 ? 'أعمال منتقاة بعناية تم اختبارها بمئات التكرارات للوصول إلى أعلى درجات الإتقان البصري والهندسي.'
                 : 'Hand-picked masterpieces engineered through hundreds of iterations for maximum output precision.'}

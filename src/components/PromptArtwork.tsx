@@ -11,6 +11,17 @@ export const PromptArtwork: React.FC<PromptArtworkProps> = ({ prompt, className 
   const { visualType } = prompt;
 
   const renderArtwork = () => {
+    if (prompt.imageUrl) {
+      return (
+        <img
+          src={prompt.imageUrl}
+          alt={prompt.titleAr}
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+      );
+    }
+
     switch (visualType) {
       case 'ancient_futuristic':
         return (

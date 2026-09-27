@@ -9,6 +9,7 @@ interface PromptCardProps {
   onOpenDetail: (prompt: PromptItem) => void;
   onToggleLike: (id: string, e: React.MouseEvent) => void;
   onToggleSave: (id: string, e: React.MouseEvent) => void;
+  onCopyPrompt?: (promptText: string) => void;
 }
 
 export const PromptCard: React.FC<PromptCardProps> = ({
@@ -17,6 +18,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({
   onOpenDetail,
   onToggleLike,
   onToggleSave,
+  onCopyPrompt,
 }) => {
   const [copied, setCopied] = useState(false);
   const isAr = lang === 'ar';
@@ -26,6 +28,9 @@ export const PromptCard: React.FC<PromptCardProps> = ({
     navigator.clipboard.writeText(prompt.promptText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    if (onCopyPrompt) {
+      onCopyPrompt(prompt.promptText);
+    }
   };
 
   const getAspectRatioClass = () => {
@@ -51,32 +56,32 @@ export const PromptCard: React.FC<PromptCardProps> = ({
         <PromptArtwork prompt={prompt} className="w-full h-full transform group-hover:scale-105 transition-transform duration-500 ease-out" />
 
         {/* Model Badge */}
-        <div className="absolute top-3 left-3 z-10">
-          <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-medium backdrop-blur-md bg-black/60 text-purple-300 border border-purple-500/30 shadow-md">
+        <div className="absolute top-2.5 left-2.5 z-10">
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium backdrop-blur-md bg-black/70 text-purple-300 border border-purple-500/30 shadow-sm">
             {prompt.model}
           </span>
         </div>
 
         {/* Aspect Ratio Badge */}
-        <div className="absolute top-3 right-3 z-10">
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono text-slate-300 backdrop-blur-md bg-black/50 border border-white/[0.08]">
+        <div className="absolute top-2.5 right-2.5 z-10">
+          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-300 backdrop-blur-md bg-black/60 border border-white/[0.08]">
             {prompt.aspectRatio}
           </span>
         </div>
 
         {/* Quick Action Floating Copy Overlay */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 backdrop-blur-[2px] transition-opacity duration-200 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 backdrop-blur-[2px] transition-opacity duration-200 flex items-center justify-center p-3">
           <div className="flex items-center gap-2">
             <button
               onClick={handleCopy}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xl transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xl transition-all cursor-pointer ${
                 copied
                   ? 'bg-emerald-600 text-white'
                   : 'violet-glow-btn text-white'
               }`}
             >
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? (isAr ? 'تم النسخ!' : 'Copied!') : (isAr ? 'نسخ البرومبت' : 'Copy Prompt')}</span>
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copied ? (isAr ? 'تم النسخ!' : 'Copied!') : (isAr ? 'نسخ' : 'Copy')}</span>
             </button>
 
             <button
@@ -84,23 +89,23 @@ export const PromptCard: React.FC<PromptCardProps> = ({
                 e.stopPropagation();
                 onOpenDetail(prompt);
               }}
-              className="p-2 rounded-xl bg-white/[0.1] hover:bg-white/[0.2] border border-white/[0.2] text-white transition-colors"
+              className="p-1.5 rounded-lg bg-white/[0.1] hover:bg-white/[0.2] border border-white/[0.2] text-white transition-colors cursor-pointer"
               title={isAr ? 'عرض التفاصيل' : 'View Details'}
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Card Body & Footer */}
-      <div className="p-4 flex flex-col flex-1 justify-between gap-3 bg-[#0B0C15]/90">
+      <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between gap-2.5 bg-[#0B0C15]/95">
         <div>
-          <h4 className="text-sm font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-1">
+          <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-1 leading-snug">
             {isAr ? prompt.titleAr : prompt.titleEn}
           </h4>
           
-          <p className="text-xs text-slate-400 mt-1 font-mono line-clamp-2 leading-relaxed opacity-80">
+          <p className="text-[11px] text-slate-400 mt-1 font-mono line-clamp-2 leading-relaxed opacity-75">
             {prompt.promptText}
           </p>
         </div>
@@ -109,40 +114,40 @@ export const PromptCard: React.FC<PromptCardProps> = ({
         <div className="flex items-center justify-between pt-2 border-t border-white/[0.06] text-xs">
           
           {/* Creator Micro Profile */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <img
               src={prompt.creator.avatar}
               alt={prompt.creator.name}
               referrerPolicy="no-referrer"
-              className="w-6 h-6 rounded-full object-cover border border-purple-500/30"
+              className="w-5 h-5 rounded-full object-cover border border-purple-500/30"
             />
-            <span className="text-[11px] font-medium text-slate-300 group-hover:text-white transition-colors">
+            <span className="text-[11px] font-medium text-slate-300 group-hover:text-white transition-colors truncate max-w-[90px]">
               {prompt.creator.name}
             </span>
           </div>
 
           {/* Likes & Saves Counters */}
-          <div className="flex items-center gap-3 text-slate-400">
+          <div className="flex items-center gap-2.5 text-slate-400">
             <button
               onClick={(e) => onToggleLike(prompt.id, e)}
-              className={`flex items-center gap-1 hover:text-rose-400 transition-colors ${
+              className={`flex items-center gap-1 hover:text-rose-400 transition-colors cursor-pointer ${
                 prompt.isLiked ? 'text-rose-500' : ''
               }`}
               title={isAr ? 'إعجاب' : 'Like'}
             >
-              <Heart className={`w-3.5 h-3.5 ${prompt.isLiked ? 'fill-rose-500' : ''}`} />
-              <span className="font-mono text-[11px]">{prompt.likes}</span>
+              <Heart className={`w-3 h-3 ${prompt.isLiked ? 'fill-rose-500' : ''}`} />
+              <span className="font-mono text-[10px]">{prompt.likes}</span>
             </button>
 
             <button
               onClick={(e) => onToggleSave(prompt.id, e)}
-              className={`flex items-center gap-1 hover:text-purple-400 transition-colors ${
+              className={`flex items-center gap-1 hover:text-purple-400 transition-colors cursor-pointer ${
                 prompt.isSaved ? 'text-purple-400' : ''
               }`}
               title={isAr ? 'حفظ' : 'Save'}
             >
-              <Bookmark className={`w-3.5 h-3.5 ${prompt.isSaved ? 'fill-purple-400' : ''}`} />
-              <span className="font-mono text-[11px]">{prompt.saves}</span>
+              <Bookmark className={`w-3 h-3 ${prompt.isSaved ? 'fill-purple-400' : ''}`} />
+              <span className="font-mono text-[10px]">{prompt.saves}</span>
             </button>
           </div>
 

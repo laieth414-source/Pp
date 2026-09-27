@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { X, Sparkles, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { Language } from '../types';
+import { loginWithGoogle, loginWithEmail, registerWithEmail } from '../lib/firebase';
 
 interface AuthModalProps {
   isOpen: boolean;
   initialMode: 'login' | 'signup';
   onClose: () => void;
   lang: Language;
+  onAuthSuccess?: (user: any) => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -14,23 +16,81 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialMode,
   onClose,
   lang,
+  onAuthSuccess
 }) => {
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const isAr = lang === 'ar';
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSuccess(true);
-    setTimeout(() => {
-      setIsSuccess(false);
-      onClose();
-    }, 1800);
+    setErrorMsg(null);
+    setLoading(true);
+
+    try {
+      let user;
+      if (mode === 'signup') {
+        user = await registerWithEmail(email, password, name);
+      } else {
+        user = await loginWithEmail(email, password);
+      }
+
+      setIsSuccess(true);
+      if (onAuthSuccess) onAuthSuccess(user);
+      setTimeout(() => {
+        setIsSuccess(false);
+        onClose();
+      }, 1500);
+    } catch (err: any) {
+      console.error('Firebase Auth Error:', err);
+      let message = err?.message || 'حدث خطأ أثناء المصادقة';
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        message = isAr ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة' : 'Invalid email or password';
+      } else if (err.code === 'auth/email-already-in-use') {
+        message = isAr ? 'هذا البريد الإلكتروني مسجل مسبقاً' : 'This email is already in use';
+      } else if (err.code === 'auth/weak-password') {
+        message = isAr ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : 'Password must be at least 6 characters';
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        message = isAr ? 'تم إغلاق نافذة تسجيل الدخول' : 'Sign-in popup was closed';
+      }
+      setErrorMsg(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setErrorMsg(null);
+    setLoading(true);
+    try {
+      const user = await loginWithGoogle();
+      setIsSuccess(true);
+      if (onAuthSuccess) onAuthSuccess(user);
+      setTimeout(() => {
+        setIsSuccess(false);
+        onClose();
+      }, 1500);
+    } catch (err: any) {
+      let message = isAr ? 'فشل تسجيل الدخول باستخدام Google' : 'Google sign-in failed';
+      if (err.code === 'auth/unauthorized-domain') {
+        const host = typeof window !== 'undefined' ? window.location.hostname : '';
+        message = isAr
+          ? `النطاق الحالي (${host}) يحتاج إضافة في قائمة النطاقات المعتمدة (Authorized domains) في Firebase Console لمشروعك promet-b9327.`
+          : `Current domain (${host}) must be added to Firebase Console -> Authorized domains for project promet-b9327.`;
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        message = isAr ? 'تم إلغاء نافذة تسجيل الدخول' : 'Popup closed by user';
+      }
+      setErrorMsg(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,16 +114,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {isSuccess ? (
           <div className="py-12 flex flex-col items-center text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h3 className="text-xl font-bold text-white">
               {mode === 'login'
-                ? (isAr ? 'تم تسجيل الدخول بنجاح!' : 'Welcome back!')
-                : (isAr ? 'تم إنشاء الحساب بنجاح!' : 'Account created successfully!')}
+                ? (isAr ? 'تم تسجيل الدخول بنجاح! 🔥' : 'Welcome back! 🔥')
+                : (isAr ? 'تم إنشاء الحساب في Firebase بنجاح! 🚀' : 'Account created successfully in Firebase! 🚀')}
             </h3>
             <p className="text-xs text-slate-400">
-              {isAr ? 'جاري تحويلك إلى لوحة التحكم...' : 'Redirecting to your workspace...'}
+              {isAr ? 'متصل بقاعدة بيانات سَوّيها السحابية...' : 'Connected to Sawihaa cloud database...'}
             </p>
           </div>
         ) : (
@@ -80,16 +140,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </h3>
               <p className="text-xs text-slate-400 mt-1">
                 {isAr
-                  ? 'الوصول إلى آلاف البرومبتات الحصرية وحفظ مفضلاتك'
-                  : 'Access exclusive verified prompts and organize your library'}
+                  ? 'المصادقة السحابية الآمنة المدعومة بـ Firebase'
+                  : 'Secure cloud authentication powered by Firebase'}
               </p>
             </div>
+
+            {/* Error Message Box */}
+            {errorMsg && (
+              <div className="mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-2.5 text-xs text-red-300">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
 
             {/* Segmented Mode Switcher */}
             <div className="flex p-1 rounded-xl bg-white/[0.04] border border-white/[0.08] mb-6">
               <button
                 type="button"
-                onClick={() => setMode('login')}
+                onClick={() => { setMode('login'); setErrorMsg(null); }}
                 className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
                   mode === 'login'
                     ? 'bg-purple-600 text-white shadow-md'
@@ -100,7 +168,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => setMode('signup')}
+                onClick={() => { setMode('signup'); setErrorMsg(null); }}
                 className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
                   mode === 'signup'
                     ? 'bg-purple-600 text-white shadow-md'
@@ -111,36 +179,40 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
-            {/* Social Logins */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            {/* Google Social Login */}
+            <div className="mb-6">
               <button
                 type="button"
-                onClick={() => {
-                  setEmail('user@gmail.com');
-                  handleSubmit({ preventDefault: () => {} } as any);
-                }}
-                className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-slate-200 transition-all cursor-pointer"
+                disabled={loading}
+                onClick={handleGoogleLogin}
+                className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-medium text-slate-200 transition-all cursor-pointer shadow-sm hover:border-purple-500/40"
               >
-                <span className="font-bold text-sm">G</span>
-                <span>Google</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('user@discord.com');
-                  handleSubmit({ preventDefault: () => {} } as any);
-                }}
-                className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-slate-200 transition-all cursor-pointer"
-              >
-                <span className="text-purple-400 font-bold text-sm">✦</span>
-                <span>Discord</span>
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.04h3.88c2.27-2.09 3.66-5.17 3.66-9.14z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.04c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.94H1.28v3.13C3.26 21.31 7.33 24 12 24z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.6H1.28C.46 8.23 0 10.06 0 12s.46 3.77 1.28 5.4l4-3.13z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.69 1.28 6.6l4 3.13c.95-2.84 3.6-4.98 6.72-4.98z"
+                  />
+                </svg>
+                <span>{isAr ? 'المتابعة باستخدام حساب Google' : 'Continue with Google'}</span>
               </button>
             </div>
 
             <div className="relative flex items-center justify-center mb-6">
               <div className="border-t border-white/[0.08] w-full" />
               <span className="bg-[#090A14] px-3 text-[11px] font-mono text-slate-400 shrink-0">
-                {isAr ? 'أو عبر البريد الإلكتروني' : 'or with email'}
+                {isAr ? 'أو بالبريد الإلكتروني' : 'or with email'}
               </span>
             </div>
 
@@ -158,7 +230,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder={isAr ? 'مثال: أحمد العراقي' : 'John Doe'}
+                      placeholder={isAr ? 'مثال: ليث محمد' : 'Laieth Mohammed'}
                       className="w-full py-2.5 pl-10 pr-4 rounded-xl bg-white/[0.04] border border-white/[0.1] text-xs text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
                     />
                   </div>
@@ -191,6 +263,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <input
                     type="password"
                     required
+                    minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
@@ -201,10 +274,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl violet-glow-btn text-xs font-semibold text-white tracking-wide shadow-lg flex items-center justify-center gap-2 mt-2"
+                disabled={loading}
+                className="w-full py-3 rounded-xl violet-glow-btn text-xs font-semibold text-white tracking-wide shadow-lg flex items-center justify-center gap-2 mt-2 cursor-pointer disabled:opacity-50"
               >
-                <span>{mode === 'login' ? (isAr ? 'تسجيل الدخول' : 'Sign In') : (isAr ? 'إنشاء حساب فوري' : 'Create Free Account')}</span>
-                {isAr ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : (
+                  <>
+                    <span>{mode === 'login' ? (isAr ? 'تسجيل الدخول' : 'Sign In') : (isAr ? 'إنشاء حساب فوري' : 'Create Free Account')}</span>
+                    {isAr ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                  </>
+                )}
               </button>
             </form>
           </div>

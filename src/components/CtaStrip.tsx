@@ -17,11 +17,11 @@ export const CtaStrip: React.FC<CtaStripProps> = ({ lang, onOpenAuth }) => {
   ];
 
   return (
-    <section className="py-16 sm:py-20 relative">
+    <section className="py-8 sm:py-10 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Ambient Container */}
-        <div className="relative rounded-3xl p-8 sm:p-12 lg:p-16 overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-purple-950/60 via-[#0E0C1A] to-[#07080D] border border-purple-500/30 shadow-[0_0_60px_rgba(147,51,234,0.25)] text-center sm:text-start flex flex-col lg:flex-row items-center justify-between gap-10">
+        <div className="relative rounded-3xl p-6 sm:p-8 lg:p-10 overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-purple-950/60 via-[#0E0C1A] to-[#07080D] border border-purple-500/30 shadow-[0_0_60px_rgba(147,51,234,0.25)] text-center sm:text-start flex flex-col lg:flex-row items-center justify-between gap-8">
           
           {/* Ambient Lighting Orbs */}
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-purple-600/30 rounded-full blur-[100px] pointer-events-none" />
