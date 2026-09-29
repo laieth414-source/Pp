@@ -3,99 +3,100 @@ import {
   TrendingUp,
   Users,
   Copy,
-  Eye,
   Sparkles,
   Layers,
   ArrowUpRight,
-  ArrowDownRight,
-  Calendar,
   BarChart3,
   PieChart,
-  Flame,
-  Award,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react';
-import { Language, HubCategory, PromptItem } from '../types';
+import { Language, HubCategory, PromptItem, AdminUser } from '../types';
 import { getPromptHubId } from '../data/hubsData';
 
 interface AdminAnalyticsTabProps {
   lang: Language;
   categories: HubCategory[];
   prompts: PromptItem[];
+  users?: AdminUser[];
 }
 
 export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
   lang,
   categories,
   prompts,
+  users = [],
 }) => {
   const isAr = lang === 'ar';
   const [timeframe, setTimeframe] = useState<'7d' | '30d' | 'all'>('7d');
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null);
 
-  // Growth Data Mock Sets
-  const chartDatasets = {
-    '7d': [
-      { label: isAr ? 'السبت' : 'Sat', visitors: 4200, signups: 320, copies: 1120 },
-      { label: isAr ? 'الأحد' : 'Sun', visitors: 5600, signups: 410, copies: 1450 },
-      { label: isAr ? 'الإثنين' : 'Mon', visitors: 6800, signups: 530, copies: 1820 },
-      { label: isAr ? 'الثلاثاء' : 'Tue', visitors: 7400, signups: 620, copies: 2100 },
-      { label: isAr ? 'الأربعاء' : 'Wed', visitors: 8900, signups: 740, copies: 2650 },
-      { label: isAr ? 'الخميس' : 'Thu', visitors: 11200, signups: 980, copies: 3410 },
-      { label: isAr ? 'الجمعة' : 'Fri', visitors: 13500, signups: 1250, copies: 4190 },
-    ],
-    '30d': [
-      { label: isAr ? 'أسبوع ١' : 'W1', visitors: 28000, signups: 2200, copies: 7900 },
-      { label: isAr ? 'أسبوع ٢' : 'W2', visitors: 36000, signups: 3100, copies: 10400 },
-      { label: isAr ? 'أسبوع ٣' : 'W3', visitors: 44000, signups: 3900, copies: 13200 },
-      { label: isAr ? 'أسبوع ٤' : 'W4', visitors: 58000, signups: 5100, copies: 18500 },
-    ],
-    'all': [
-      { label: isAr ? 'يناير' : 'Jan', visitors: 45000, signups: 4200, copies: 14000 },
-      { label: isAr ? 'فبراير' : 'Feb', visitors: 72000, signups: 6800, copies: 24000 },
-      { label: isAr ? 'مارس' : 'Mar', visitors: 124000, signups: 11500, copies: 42000 },
-    ],
-  };
+  // 1. Real KPI Aggregates strictly from Firestore state
+  const activePrompts = prompts.filter((p) => p.status === 'approved');
+  const activePromptsCount = activePrompts.length;
+  const pendingPromptsCount = prompts.filter((p) => p.status === 'pending').length;
+  const totalCopiesCount = prompts.reduce((acc, p) => acc + (p.copyCount || 0), 0);
+  const creatorsCount = users.length;
 
-  const currentData = chartDatasets[timeframe];
+  // 2. Dynamic Timeframe Chart Generation from real document timestamps
+  const numDays = timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 14;
+  const ARABIC_WEEKDAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
-  // Dynamic Category Breakdown Calculation
-  const totalPrompts = prompts.length || 1;
-  const categoryStats = categories.map((cat, idx) => {
-    const count = prompts.filter((p) => getPromptHubId(p, categories) === cat.id).length;
-    const percentage = Math.round((count / totalPrompts) * 100) || 0;
-    const colors = [
-      '#A855F7', // purple
-      '#6366F1', // indigo
-      '#D946EF', // fuchsia
-      '#EC4899', // pink
-      '#8B5CF6', // violet
-      '#06B6D4', // cyan
-      '#10B981', // emerald
-    ];
+  const dynamicChartData = Array.from({ length: numDays }, (_, i) => {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() - (numDays - 1 - i));
+    targetDate.setHours(0, 0, 0, 0);
+
+    const nextDate = new Date(targetDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    // Count prompts created on this specific day
+    const dayPrompts = prompts.filter((p) => {
+      if (!p.createdAt) return false;
+      const d = new Date(p.createdAt);
+      if (isNaN(d.getTime())) return false;
+      return d >= targetDate && d < nextDate;
+    });
+
+    // Sum actual copies on this day's items
+    const dayCopies = dayPrompts.reduce((acc, p) => acc + (p.copyCount || 0), 0);
+
+    // Count new users registered on this day
+    const dayUsers = users.filter((u) => {
+      if (!u.joinedDate) return false;
+      const d = new Date(u.joinedDate);
+      if (isNaN(d.getTime())) return false;
+      return d >= targetDate && d < nextDate;
+    }).length;
+
+    const weekdayLabel = isAr
+      ? (numDays <= 7 ? ARABIC_WEEKDAYS[targetDate.getDay()] : targetDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'numeric' }))
+      : targetDate.toLocaleDateString('en-US', { weekday: numDays <= 7 ? 'short' : undefined, day: 'numeric', month: 'numeric' });
+
     return {
-      id: cat.id,
-      name: isAr ? cat.titleAr : (cat.titleEn || cat.titleAr),
-      count,
-      percentage,
-      color: colors[idx % colors.length],
+      label: weekdayLabel,
+      fullDate: targetDate.toLocaleDateString(isAr ? 'ar-SA' : 'en-US'),
+      promptsCreated: dayPrompts.length,
+      copies: dayCopies,
+      signups: dayUsers,
+      activity: dayPrompts.length + dayCopies + dayUsers,
     };
   });
 
-  // Calculate Most Engaged Prompt
-  const mostEngagedPrompt = [...prompts].sort(
-    (a, b) => b.likes + b.saves * 2 - (a.likes + a.saves * 2)
-  )[0] || prompts[0];
-
-  // Calculate SVG curve coordinates for Visitors Growth
-  const maxVisitors = Math.max(...currentData.map((d) => d.visitors));
+  // Calculate coordinates: if 0 activity, cleanly plot at the bottom baseline (0)
+  const maxActivity = Math.max(...dynamicChartData.map((d) => d.activity), 0);
   const svgWidth = 600;
   const svgHeight = 220;
   const paddingX = 40;
   const paddingY = 30;
 
-  const points = currentData.map((d, i) => {
-    const x = paddingX + (i / (currentData.length - 1)) * (svgWidth - paddingX * 2);
-    const y = svgHeight - paddingY - (d.visitors / maxVisitors) * (svgHeight - paddingY * 2);
+  const points = dynamicChartData.map((d, i) => {
+    const x = paddingX + (i / (dynamicChartData.length - 1)) * (svgWidth - paddingX * 2);
+    // When d.activity is 0 or maxActivity is 0, y is exactly at the baseline (0 activity)
+    const y =
+      maxActivity === 0
+        ? svgHeight - paddingY
+        : svgHeight - paddingY - (d.activity / maxActivity) * (svgHeight - paddingY * 2);
     return { x, y, data: d };
   });
 
@@ -112,20 +113,73 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
 
   const areaPath = `${linePath} L ${points[points.length - 1].x} ${svgHeight - paddingY} L ${points[0].x} ${svgHeight - paddingY} Z`;
 
+  // Dynamic Category Breakdown Calculation strictly from real prompts
+  const totalPromptsCount = prompts.length;
+
+  const colors = [
+    '#A855F7',
+    '#6366F1',
+    '#D946EF',
+    '#EC4899',
+    '#8B5CF6',
+    '#06B6D4',
+    '#10B981',
+  ];
+
+  const categoryStats = categories.map((cat, idx) => {
+    const count = prompts.filter((p) => {
+      const pCat = ((p as any).category || '').toLowerCase();
+      const pCatId = ((p as any).categoryId || '').toLowerCase();
+      const pHubId = (p.hubId || '').toLowerCase();
+      const catId = cat.id.toLowerCase();
+      const catNameAr = (cat.titleAr || '').toLowerCase();
+      const catNameEn = (cat.titleEn || (cat as any).name || '').toLowerCase();
+
+      return (
+        pCatId === catId ||
+        pHubId === catId ||
+        pCat === catId ||
+        pCat === catNameAr ||
+        pCat === catNameEn ||
+        getPromptHubId(p, categories) === cat.id
+      );
+    }).length;
+
+    const percentage = totalPromptsCount > 0 ? Math.round((count / totalPromptsCount) * 100) : 0;
+
+    return {
+      ...cat,
+      id: cat.id,
+      name: isAr ? cat.titleAr : (cat.titleEn || (cat as any).name || cat.titleAr),
+      count,
+      percentage,
+      color: colors[idx % colors.length],
+    };
+  });
+
+  // Top / Most Engaged Prompt based on actual Firestore copyCount and interactions
+  const mostEngagedPrompt =
+    prompts.length > 0
+      ? [...prompts].sort(
+          (a, b) =>
+            (b.copyCount || 0) * 3 + (b.likes || 0) * 2 + (b.saves || 0) -
+            ((a.copyCount || 0) * 3 + (a.likes || 0) * 2 + (a.saves || 0))
+        )[0]
+      : null;
+
   return (
     <div className="space-y-6 max-w-5xl" dir={isAr ? 'rtl' : 'ltr'}>
-      
       {/* Header and Filter Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-purple-400" />
-            <span>{isAr ? 'الإحصائيات والتحليلات المتقدمة' : 'Advanced Analytics & Metrics'}</span>
+            <span>{isAr ? 'إحصائيات وتحليلات المنصة الحقيقية' : 'Live Platform Analytics'}</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
             {isAr
-              ? 'متابعة حية لتفاعل المستخدمين، معدلات نسخ البرومبتات، وتوزيع المحتوى عبر الأقسام.'
-              : 'Real-time telemetry tracking visitor growth, prompt engagement, and hub distributions.'}
+              ? 'بيانات حية مباشرة 100% من قاعدة بيانات Firestore تتبع تفاعل المستخدمين والنسخ الفعلي.'
+              : 'Direct live queries tracking real user document creations, active prompts, and copy events.'}
           </p>
         </div>
 
@@ -151,130 +205,119 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
           >
             {isAr ? 'آخر ٣٠ يوماً' : '30 Days'}
           </button>
-          <button
-            onClick={() => setTimeframe('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              timeframe === 'all'
-                ? 'bg-purple-600/40 border border-purple-500/50 text-white shadow-[0_0_12px_rgba(168,85,247,0.3)]'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            {isAr ? 'منذ الإطلاق' : 'All-time'}
-          </button>
         </div>
       </div>
 
-      {/* Top 4 KPI Metrics Cards */}
+      {/* Top 4 Real KPI Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        {/* KPI 1: Average Prompts Copied per Day */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-violet-500/40 transition-colors">
+        {/* KPI 1: Real Active Prompts */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-emerald-500/40 transition-colors shadow-sm">
           <div className="flex items-center justify-between text-[#94a3b8] text-xs">
-            <span>{isAr ? 'معدل النسخ اليومي' : 'Avg. Copied / Day'}</span>
-            <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center text-violet-400">
-              <Copy className="w-4 h-4" />
+            <span>{isAr ? 'إجمالي البرومبتات النشطة' : 'Active Live Prompts'}</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+              <Sparkles className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-white font-mono">١,٨٤٠</span>
-            <span className="text-[11px] font-semibold text-emerald-400 flex items-center">
-              <ArrowUpRight className="w-3 h-3" />
-              <span>+٢٤٪</span>
+            <span className="text-2xl font-black text-white font-mono">{activePromptsCount.toLocaleString()}</span>
+            <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" />
+              <span>{isAr ? 'معتمد' : 'Approved'}</span>
             </span>
           </div>
           <p className="text-[10px] text-slate-500 mt-1">
-            {isAr ? 'مقارنة بالأسبوع المنصرم' : 'vs previous period'}
+            {isAr ? 'البرومبتات المنشورة في الصفحة العامة' : 'Currently visible in public feed'}
           </p>
         </div>
 
-        {/* KPI 2: Total Platform Visitors */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-violet-500/40 transition-colors">
+        {/* KPI 2: Real Registered Creators */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-violet-500/40 transition-colors shadow-sm">
           <div className="flex items-center justify-between text-[#94a3b8] text-xs">
-            <span>{isAr ? 'إجمالي الزيارات' : 'Total Visits'}</span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-              <Eye className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-white font-mono">٩٤,٥٢٠</span>
-            <span className="text-[11px] font-semibold text-emerald-400 flex items-center">
-              <ArrowUpRight className="w-3 h-3" />
-              <span>+٣١٪</span>
-            </span>
-          </div>
-          <p className="text-[10px] text-slate-500 mt-1">
-            {isAr ? 'زوار نشطون من ٤٢ دولة' : 'across 42 countries'}
-          </p>
-        </div>
-
-        {/* KPI 3: Registered Community Creators */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-violet-500/40 transition-colors">
-          <div className="flex items-center justify-between text-[#94a3b8] text-xs">
-            <span>{isAr ? 'المبدعون المسجلون' : 'Verified Creators'}</span>
+            <span>{isAr ? 'المبدعون المسجلون' : 'Registered Creators'}</span>
             <div className="w-8 h-8 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-white font-mono">١,٢٨٠</span>
+            <span className="text-2xl font-black text-white font-mono">{creatorsCount.toLocaleString()}</span>
             <span className="text-[11px] font-semibold text-violet-400 flex items-center">
               <ArrowUpRight className="w-3 h-3" />
-              <span>+١٢٪</span>
+              <span>{isAr ? 'حقيقي' : 'Live'}</span>
             </span>
           </div>
           <p className="text-[10px] text-slate-500 mt-1">
-            {isAr ? 'صناع برومبتات معتمدون' : 'active community members'}
+            {isAr ? 'مستندات حقيقية من Firestore' : 'Live accounts in users collection'}
           </p>
         </div>
 
-        {/* KPI 4: Total Verified Prompts */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-violet-500/40 transition-colors">
+        {/* KPI 3: Real Total Copy Actions */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-indigo-500/40 transition-colors shadow-sm">
           <div className="flex items-center justify-between text-[#94a3b8] text-xs">
-            <span>{isAr ? 'إجمالي البرومبتات النشطة' : 'Active Prompts'}</span>
-            <div className="w-8 h-8 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400">
-              <Sparkles className="w-4 h-4" />
+            <span>{isAr ? 'إجمالي عمليات النسخ' : 'Total Prompt Copies'}</span>
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+              <Copy className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-white font-mono">{prompts.length}</span>
-            <span className="text-[11px] font-semibold text-emerald-400 flex items-center">
+            <span className="text-2xl font-black text-white font-mono">{totalCopiesCount.toLocaleString()}</span>
+            <span className="text-[11px] font-semibold text-indigo-400 flex items-center">
               <ArrowUpRight className="w-3 h-3" />
-              <span>+٦ هذا الأسبوع</span>
+              <span>{isAr ? 'تفاعل مباشر' : 'Logged clicks'}</span>
             </span>
           </div>
           <p className="text-[10px] text-slate-500 mt-1">
-            {isAr ? `موزعة على ${categories.length} أقسام` : `across ${categories.length} hubs`}
+            {isAr ? 'مجموع عداد copyCount للبرومبتات' : 'Aggregated copy clicks counter'}
           </p>
         </div>
 
+        {/* KPI 4: Real Pending Review Queue */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#13141c] border border-white/10 relative overflow-hidden group hover:border-amber-500/40 transition-colors shadow-sm">
+          <div className="flex items-center justify-between text-[#94a3b8] text-xs">
+            <span>{isAr ? 'طلبات قيد المراجعة' : 'Pending Review'}</span>
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-2xl font-black text-white font-mono">{pendingPromptsCount.toLocaleString()}</span>
+            <span
+              className={`text-[11px] font-semibold flex items-center gap-1 ${
+                pendingPromptsCount > 0 ? 'text-amber-400' : 'text-slate-400'
+              }`}
+            >
+              <span>{pendingPromptsCount > 0 ? (isAr ? '⏳ بانتظار البت' : 'Action needed') : (isAr ? '✓ القائمة فارغة' : 'Clean')}</span>
+            </span>
+          </div>
+          <p className="text-[10px] text-slate-500 mt-1">
+            {isAr ? 'برومبتات بحالة pending' : 'Prompts waiting for admin review'}
+          </p>
+        </div>
       </div>
 
-      {/* Main Growth Line Chart: نمو الزوار والمسجلين الجدد */}
+      {/* Main Growth Dynamic Chart */}
       <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-[#0F1020]/90 via-[#0A0B14]/90 to-[#07080E] border border-white/10 shadow-2xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-purple-400" />
-              <span>{isAr ? 'نمو الزوار والمسجلين الجدد (Visitor & Signup Growth)' : 'Visitor & Signup Growth'}</span>
+              <span>{isAr ? 'مخطط النشاط اليومي الحقيقي (Daily Activity)' : 'Real Daily Activity Chart'}</span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              {isAr ? 'حرك المؤشر فوق النقاط لعرض التفاصيل اليومية' : 'Hover over points for daily breakdown'}
+              {isAr
+                ? 'حساب ديناميكي فوري من تواريخ إنشاء البرومبتات، عمليات النسخ، وتسجيل المبدعين.'
+                : 'Calculated in real-time from prompt creations, copy actions, and registrations.'}
             </p>
           </div>
 
           <div className="flex items-center gap-4 text-xs font-mono">
             <span className="flex items-center gap-1.5 text-purple-300">
               <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-              <span>{isAr ? 'الزيارات اليومية' : 'Daily Visitors'}</span>
-            </span>
-            <span className="flex items-center gap-1.5 text-indigo-300">
-              <span className="w-2.5 h-2.5 rounded-full bg-indigo-400" />
-              <span>{isAr ? 'المسجلون الجدد' : 'New Signups'}</span>
+              <span>{isAr ? 'النشاط الكلي الفعلي' : 'Recorded Activity'}</span>
             </span>
           </div>
         </div>
 
-        {/* Interactive SVG Chart Container */}
+        {/* Dynamic SVG Chart */}
         <div className="relative w-full overflow-hidden pt-2">
           <svg
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -282,13 +325,13 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
             className="w-full h-auto min-h-[220px] max-h-[300px] overflow-visible"
           >
             <defs>
-              <linearGradient id="violetAreaGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="realActivityGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#A855F7" stopOpacity="0.45" />
                 <stop offset="60%" stopColor="#6366F1" stopOpacity="0.15" />
                 <stop offset="100%" stopColor="#0B0C15" stopOpacity="0.0" />
               </linearGradient>
 
-              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+              <filter id="realGlow" x="-20%" y="-20%" width="140%" height="140%">
                 <feGaussianBlur stdDeviation="4" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
@@ -314,15 +357,15 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
             })}
 
             {/* Area Fill */}
-            <path d={areaPath} fill="url(#violetAreaGradient)" />
+            <path d={areaPath} fill="url(#realActivityGradient)" />
 
-            {/* Glowing Line */}
+            {/* Dynamic Curve Line */}
             <path
               d={linePath}
               fill="none"
               stroke="#A855F7"
               strokeWidth="3.5"
-              filter="url(#glow)"
+              filter="url(#realGlow)"
               strokeLinecap="round"
             />
 
@@ -331,7 +374,6 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
               const isHovered = hoveredPointIndex === idx;
               return (
                 <g key={idx}>
-                  {/* Point Outer Ring */}
                   <circle
                     cx={pt.x}
                     cy={pt.y}
@@ -343,8 +385,6 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
                     onMouseEnter={() => setHoveredPointIndex(idx)}
                     onMouseLeave={() => setHoveredPointIndex(null)}
                   />
-
-                  {/* Point Center Dot */}
                   <circle
                     cx={pt.x}
                     cy={pt.y}
@@ -352,8 +392,6 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
                     fill="#FFFFFF"
                     className="pointer-events-none"
                   />
-
-                  {/* X-Axis Label */}
                   <text
                     x={pt.x}
                     y={svgHeight - 8}
@@ -370,28 +408,32 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
             })}
           </svg>
 
-          {/* Interactive Hover Tooltip Card */}
+          {/* Interactive Hover Tooltip */}
           {hoveredPointIndex !== null && (
             <div
-              className="absolute z-20 pointer-events-none -translate-x-1/2 rounded-2xl p-3 bg-[#0E0F1E]/95 border border-purple-500/60 shadow-[0_0_20px_rgba(168,85,247,0.5)] backdrop-blur-xl text-xs space-y-1 animate-in fade-in zoom-in-95 duration-150"
+              className="absolute z-20 pointer-events-none -translate-x-1/2 rounded-2xl p-3 bg-[#0E0F1E]/95 border border-purple-500/60 shadow-[0_0_20px_rgba(168,85,247,0.5)] backdrop-blur-xl text-xs space-y-1.5 animate-in fade-in zoom-in-95 duration-150"
               style={{
                 left: `${(points[hoveredPointIndex].x / svgWidth) * 100}%`,
-                top: `${(points[hoveredPointIndex].y / svgHeight) * 70}%`,
+                top: `${(points[hoveredPointIndex].y / svgHeight) * 65}%`,
               }}
             >
               <div className="font-bold text-white border-b border-white/10 pb-1 flex items-center justify-between gap-4">
-                <span>{points[hoveredPointIndex].data.label}</span>
+                <span>{points[hoveredPointIndex].data.fullDate || points[hoveredPointIndex].data.label}</span>
                 <span className="text-[10px] text-purple-400 font-mono">
-                  {points[hoveredPointIndex].data.copies} {isAr ? 'نسخ' : 'copies'}
+                  {points[hoveredPointIndex].data.activity} {isAr ? 'إجمالي تفاعل' : 'total'}
                 </span>
               </div>
               <div className="text-[11px] text-purple-300 font-mono flex items-center justify-between gap-3">
-                <span>{isAr ? 'الزوار:' : 'Visitors:'}</span>
-                <strong>{points[hoveredPointIndex].data.visitors.toLocaleString()}</strong>
+                <span>{isAr ? 'برومبتات جديدة:' : 'New prompts:'}</span>
+                <strong>{points[hoveredPointIndex].data.promptsCreated}</strong>
               </div>
               <div className="text-[11px] text-indigo-300 font-mono flex items-center justify-between gap-3">
-                <span>{isAr ? 'المسجلون:' : 'Signups:'}</span>
-                <strong>+{points[hoveredPointIndex].data.signups}</strong>
+                <span>{isAr ? 'عمليات نسخ:' : 'Copy events:'}</span>
+                <strong>{points[hoveredPointIndex].data.copies}</strong>
+              </div>
+              <div className="text-[11px] text-cyan-300 font-mono flex items-center justify-between gap-3">
+                <span>{isAr ? 'مبدعون جدد:' : 'New signups:'}</span>
+                <strong>{points[hoveredPointIndex].data.signups}</strong>
               </div>
             </div>
           )}
@@ -400,35 +442,40 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
 
       {/* Row 2: Category Distribution Breakdown + Most Engaged Prompt */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        
-        {/* Category Breakdown (Donut + Progress Bars) */}
+        {/* Category Breakdown */}
         <div className="lg:col-span-7 p-5 sm:p-6 rounded-3xl bg-white/[0.02] border border-white/10 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <PieChart className="w-4 h-4 text-purple-400" />
-              <span>{isAr ? 'توزيع البرومبتات حسب الأقسام (Category Breakdown)' : 'Category Distribution'}</span>
+              <span>{isAr ? 'توزيع البرومبتات حسب الأقسام' : 'Category Distribution'}</span>
             </h3>
             <span className="text-xs font-mono text-purple-300">
-              {totalPrompts} {isAr ? 'برومبت مسجل' : 'prompts'}
+              {totalPromptsCount} {isAr ? 'برومبت مسجل' : 'prompts'}
             </span>
           </div>
 
           {/* Stacked Percentage Bar */}
           <div className="h-3 w-full rounded-full bg-white/[0.05] overflow-hidden flex gap-0.5">
-            {categoryStats.map((cat) => (
-              <div
-                key={cat.id}
-                style={{
-                  width: `${cat.percentage}%`,
-                  backgroundColor: cat.color,
-                }}
-                className="h-full first:rounded-l-full last:rounded-r-full transition-all hover:brightness-125"
-                title={`${cat.name}: ${cat.count} (${cat.percentage}%)`}
-              />
-            ))}
+            {totalPromptsCount > 0 && categoryStats.some((cat) => cat.count > 0) ? (
+              categoryStats.map((cat) =>
+                cat.percentage > 0 ? (
+                  <div
+                    key={cat.id}
+                    style={{
+                      width: `${cat.percentage}%`,
+                      backgroundColor: cat.color,
+                    }}
+                    className="h-full first:rounded-l-full last:rounded-r-full transition-all hover:brightness-125"
+                    title={`${cat.name}: ${cat.count} (${cat.percentage}%)`}
+                  />
+                ) : null
+              )
+            ) : (
+              <div className="w-full h-full bg-white/[0.03]" />
+            )}
           </div>
 
-          {/* Individual Category List */}
+          {/* Category List */}
           <div className="space-y-2.5 pt-2">
             {categoryStats.map((cat) => (
               <div key={cat.id} className="flex items-center justify-between text-xs">
@@ -452,63 +499,63 @@ export const AdminAnalyticsTab: React.FC<AdminAnalyticsTabProps> = ({
           </div>
         </div>
 
-        {/* Most Engaged Prompt Highlight Card */}
-        <div className="lg:col-span-5 p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-purple-950/40 via-violet-950/20 to-[#0A0B14] border border-purple-500/30 flex flex-col justify-between space-y-4">
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-semibold">
-                <Flame className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <span>{isAr ? 'البرومبت الأكثر تفاعلاً هذا الأسبوع' : 'Top Prompt of the Week'}</span>
-              </span>
-              <Award className="w-5 h-5 text-amber-400" />
-            </div>
+        {/* Most Engaged Prompt */}
+        <div className="lg:col-span-5 p-5 sm:p-6 rounded-3xl bg-white/[0.02] border border-white/10 space-y-4 flex flex-col justify-between">
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>{isAr ? 'البرومبت الأكثر نسخاً وتفاعلاً' : 'Most Copied & Engaged'}</span>
+            </h3>
 
             {mostEngagedPrompt ? (
-              <div className="mt-4 space-y-3">
+              <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3">
                 <div className="flex items-center gap-3">
                   {mostEngagedPrompt.imageUrl ? (
                     <img
                       src={mostEngagedPrompt.imageUrl}
                       alt=""
-                      className="w-14 h-14 rounded-2xl object-cover border border-purple-500/40 shadow-lg"
+                      className="w-12 h-12 rounded-xl object-cover border border-white/10 shrink-0"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-xl">
-                      ⭐
+                    <div className="w-12 h-12 rounded-xl bg-purple-950/40 border border-purple-500/30 flex items-center justify-center text-xl shrink-0">
+                      ✨
                     </div>
                   )}
-                  <div>
-                    <h4 className="text-sm font-bold text-white line-clamp-1">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-xs font-bold text-white truncate">
                       {isAr ? mostEngagedPrompt.titleAr : mostEngagedPrompt.titleEn}
                     </h4>
-                    <span className="text-[11px] font-mono text-purple-300">
+                    <p className="text-[10px] text-slate-400 font-mono mt-0.5">
                       {mostEngagedPrompt.model}
-                    </span>
+                    </p>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-300/80 font-mono line-clamp-3 bg-black/40 p-2.5 rounded-xl border border-white/5 leading-relaxed">
+                <p className="text-xs text-slate-300 font-mono line-clamp-3 leading-relaxed break-words bg-black/40 p-2.5 rounded-xl border border-white/5">
                   {mostEngagedPrompt.promptText}
                 </p>
 
-                <div className="flex items-center justify-between text-xs font-mono text-slate-300 pt-1">
-                  <span>❤️ {mostEngagedPrompt.likes} {isAr ? 'إعجاب' : 'likes'}</span>
-                  <span>🔖 {mostEngagedPrompt.saves} {isAr ? 'حفظ' : 'saves'}</span>
-                  <span className="text-emerald-400 font-bold">٩٩.٤٪ رضا</span>
+                <div className="flex items-center justify-between text-xs font-mono pt-1 text-slate-400">
+                  <span className="flex items-center gap-1 text-indigo-400">
+                    <Copy className="w-3.5 h-3.5" />
+                    <strong>{mostEngagedPrompt.copyCount || 0} {isAr ? 'نسخة' : 'copies'}</strong>
+                  </span>
+                  <span>❤️ {mostEngagedPrompt.likes || 0}</span>
                 </div>
               </div>
-            ) : null}
-          </div>
-
-          <div className="pt-3 border-t border-white/[0.08] text-[11px] text-slate-400">
-            {isAr
-              ? 'يتم تحديث ترشيحات النخبة تلقائياً بالاعتماد على خوارزمية قياس النسخ والنقرات.'
-              : 'Ranked automatically based on algorithmic save-to-copy ratio.'}
+            ) : (
+              <div className="p-8 text-center rounded-2xl bg-[#0e1017] border border-white/10 space-y-2">
+                <Sparkles className="w-8 h-8 text-slate-500 mx-auto" />
+                <p className="text-xs text-slate-400">
+                  {isAr
+                    ? 'لا توجد برومبتات مضافة حالياً. ابدأ بإضافة أول برومبت الآن!'
+                    : 'No prompts added yet. Start by adding your first prompt now!'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
-
       </div>
-
     </div>
   );
 };

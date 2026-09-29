@@ -11,7 +11,7 @@ interface LatestHighlightsProps {
   onOpenDetail: (prompt: PromptItem) => void;
   onToggleLike: (id: string, e: React.MouseEvent) => void;
   onToggleSave: (id: string, e: React.MouseEvent) => void;
-  onCopyPrompt?: (promptText: string) => void;
+  onCopyPrompt?: (promptOrText: PromptItem | string) => void;
   onSelectHub: (hubId: string) => void;
 }
 

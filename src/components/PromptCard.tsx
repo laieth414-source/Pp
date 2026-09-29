@@ -9,7 +9,7 @@ interface PromptCardProps {
   onOpenDetail: (prompt: PromptItem) => void;
   onToggleLike: (id: string, e: React.MouseEvent) => void;
   onToggleSave: (id: string, e: React.MouseEvent) => void;
-  onCopyPrompt?: (promptText: string) => void;
+  onCopyPrompt?: (promptOrText: PromptItem | string) => void;
 }
 
 export const PromptCard: React.FC<PromptCardProps> = ({
@@ -29,7 +29,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     if (onCopyPrompt) {
-      onCopyPrompt(prompt.promptText);
+      onCopyPrompt(prompt);
     }
   };
 

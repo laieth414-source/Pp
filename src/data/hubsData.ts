@@ -16,7 +16,7 @@ export const CATEGORY_HUBS: HubCategory[] = [
   {
     id: 'cinematic',
     titleAr: 'سينمائي ودرامي',
-    titleEn: 'Cinematic & Film',
+    titleEn: 'Cinematic & Drama',
     descriptionAr: 'لقطات عريضة، حركات كاميرا درامية، إضاءة حجمية ومشاهد هوليوودية',
     descriptionEn: 'Anamorphic lenses, dynamic camera motion, atmospheric haze, and movie scenes',
     iconName: 'Film',
@@ -24,6 +24,42 @@ export const CATEGORY_HUBS: HubCategory[] = [
     accentBorder: 'group-hover:border-indigo-500/50',
     accentGlow: 'rgba(99, 102, 241, 0.4)',
     sampleTag: 'تصوير_سينمائي',
+  },
+  {
+    id: 'anime',
+    titleAr: 'أنمي وفانتازيا',
+    titleEn: 'Anime & Fantasy',
+    descriptionAr: 'رسومات مانجا يابانية، ألوان فانتاسي خيالية، وتصاميم شخصيات إبداعية',
+    descriptionEn: 'Studio Ghibli & modern anime styles, fantasy concept art, and vibrant cel shading',
+    iconName: 'Sparkles',
+    gradient: 'from-pink-900/40 via-purple-950/20 to-transparent',
+    accentBorder: 'group-hover:border-pink-500/50',
+    accentGlow: 'rgba(236, 72, 153, 0.4)',
+    sampleTag: 'أنمي_فانتازيا',
+  },
+  {
+    id: 'commercial',
+    titleAr: 'تصميم تجاري',
+    titleEn: 'Commercial Design',
+    descriptionAr: 'تصوير منتجات، إعلانات تجارية، هوية بصرية وتصاميم ترويجية احترافية',
+    descriptionEn: 'Product photography, commercial mockups, visual branding, and marketing assets',
+    iconName: 'ShoppingBag',
+    gradient: 'from-amber-900/40 via-orange-950/20 to-transparent',
+    accentBorder: 'group-hover:border-amber-500/50',
+    accentGlow: 'rgba(245, 158, 11, 0.4)',
+    sampleTag: 'تصميم_تجاري',
+  },
+  {
+    id: '3d-design',
+    titleAr: 'شخصيات 3D',
+    titleEn: '3D Characters',
+    descriptionAr: 'شخصيات ثلاثية الأبعاد، مجسمات رقمية، مواد ريندر واقعية ومحاكاة Octane',
+    descriptionEn: '3D characters, digital sculptures, realistic materials, and Octane renders',
+    iconName: 'Box',
+    gradient: 'from-violet-900/40 via-indigo-950/20 to-transparent',
+    accentBorder: 'group-hover:border-violet-500/50',
+    accentGlow: 'rgba(139, 92, 246, 0.4)',
+    sampleTag: 'شخصيات_3D',
   },
   {
     id: 'cyberpunk',
@@ -38,44 +74,29 @@ export const CATEGORY_HUBS: HubCategory[] = [
     sampleTag: 'سايبربانك',
   },
   {
-    id: 'anime',
-    titleAr: 'أنمي ورسوم متحركة',
-    titleEn: 'Anime & 2D Art',
-    descriptionAr: 'رسومات مانجا يابانية، ألوان فانتاسي خيالية، وتصاميم شخصيات إبداعية',
-    descriptionEn: 'Studio Ghibli & modern anime styles, fantasy concept art, and vibrant cel shading',
-    iconName: 'Sparkles',
-    gradient: 'from-pink-900/40 via-purple-950/20 to-transparent',
-    accentBorder: 'group-hover:border-pink-500/50',
-    accentGlow: 'rgba(236, 72, 153, 0.4)',
-    sampleTag: 'أنمي',
-  },
-  {
-    id: '3d-design',
-    titleAr: 'ثلاثي الأبعاد وتصميم منتجات',
-    titleEn: '3D & Product Design',
-    descriptionAr: 'سيارات فاخرة، تصاميم صناعية، مواد كريستال ومحاكاة ريندر Octane',
-    descriptionEn: 'Industrial design, luxury hypercars, realistic glass/metal materials, and Octane renders',
-    iconName: 'Box',
-    gradient: 'from-violet-900/40 via-indigo-950/20 to-transparent',
-    accentBorder: 'group-hover:border-violet-500/50',
-    accentGlow: 'rgba(139, 92, 246, 0.4)',
-    sampleTag: 'تصميم_ثلاثي_الأبعاد',
-  },
-  {
     id: 'code-dev',
-    titleAr: 'كود وبرمجة',
-    titleEn: 'Code & Architecture',
+    titleAr: 'برمجة وكود',
+    titleEn: 'Code & Dev',
     descriptionAr: 'وكلاء ذكاء اصطناعي، تطبيقات Full-Stack، سكربتات أتمتة وتطوير برمجيات',
     descriptionEn: 'Autonomous coding agents, fullstack architectures, refactoring, and AI pipelines',
     iconName: 'Code',
     gradient: 'from-cyan-900/40 via-blue-950/20 to-transparent',
     accentBorder: 'group-hover:border-cyan-500/50',
     accentGlow: 'rgba(6, 182, 212, 0.4)',
-    sampleTag: 'React_TypeScript',
+    sampleTag: 'برمجة_وكود',
   },
 ];
 
 export function getPromptHubId(prompt: PromptItem, categories: HubCategory[] = CATEGORY_HUBS): string {
+  const pCat = (prompt.category || '').trim();
+  if (pCat === 'بورتريه ووجوه') return 'portrait';
+  if (pCat === 'سينمائي ودرامي') return 'cinematic';
+  if (pCat === 'أنمي وفانتازيا') return 'anime';
+  if (pCat === 'تصميم تجاري') return 'commercial';
+  if (pCat === 'شخصيات 3D') return '3d-design';
+  if (pCat === 'سايبربانك وخيال علمي') return 'cyberpunk';
+  if (pCat === 'برمجة وكود') return 'code-dev';
+
   if (prompt.hubId) {
     const valid = categories.find((h) => h.id === prompt.hubId);
     if (valid) return valid.id;

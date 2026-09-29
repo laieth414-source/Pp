@@ -20,7 +20,8 @@ import {
   deleteDoc,
   collection,
   onSnapshot,
-  getDocFromServer
+  getDocFromServer,
+  increment
 } from 'firebase/firestore';
 import { PromptItem, AdminUser, SiteSettings, HubCategory } from '../types';
 
@@ -119,9 +120,7 @@ export function subscribeToPrompts(
       snapshot.forEach((docSnap) => {
         items.push({ id: docSnap.id, ...(docSnap.data() as any) });
       });
-      if (items.length > 0) {
-        onData(items);
-      }
+      onData(items);
     },
     (error) => {
       handleFirestoreError(error, OperationType.LIST, 'prompts');
@@ -137,6 +136,22 @@ export async function savePromptToFirestore(prompt: PromptItem): Promise<void> {
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, `prompts/${prompt.id}`);
     throw error;
+  }
+}
+
+export async function recordPromptCopy(promptId: string): Promise<void> {
+  try {
+    const docRef = doc(db, 'prompts', promptId);
+    await updateDoc(docRef, {
+      copyCount: increment(1)
+    });
+  } catch (error) {
+    try {
+      const docRef = doc(db, 'prompts', promptId);
+      await setDoc(docRef, { copyCount: increment(1) }, { merge: true });
+    } catch (e) {
+      console.warn('Record copy error:', e);
+    }
   }
 }
 
@@ -173,9 +188,7 @@ export function subscribeToUsers(
       snapshot.forEach((docSnap) => {
         items.push({ id: docSnap.id, ...(docSnap.data() as any) });
       });
-      if (items.length > 0) {
-        onData(items);
-      }
+      onData(items);
     },
     (error) => {
       handleFirestoreError(error, OperationType.LIST, 'users');
@@ -289,35 +302,56 @@ export async function saveCategoriesToFirestore(categories: HubCategory[]): Prom
   }
 }
 
-// Batch Seed helper if Firestore collections are empty
-export async function seedInitialDataIfEmpty(
-  initialPrompts: PromptItem[],
-  initialUsers: AdminUser[],
-  initialCategories: HubCategory[],
-  initialSettings: SiteSettings
-) {
+// Purge any mock/dummy seeded items from Firestore
+export async function purgeMockDataFromFirestore(): Promise<void> {
   try {
     const promptsSnap = await getDocs(collection(db, 'prompts'));
-    if (promptsSnap.empty) {
-      console.log('Seeding initial prompts into Firestore...');
-      for (const p of initialPrompts.slice(0, 15)) {
-        await setDoc(doc(db, 'prompts', p.id), p);
-      }
-    }
-
-    const categoriesSnap = await getDocs(collection(db, 'categories'));
-    if (categoriesSnap.empty) {
-      console.log('Seeding initial categories into Firestore...');
-      for (const cat of initialCategories) {
-        await setDoc(doc(db, 'categories', cat.id), cat);
+    for (const docSnap of promptsSnap.docs) {
+      const id = docSnap.id;
+      const data = docSnap.data();
+      // Detect dummy/mock prompts
+      if (
+        id.startsWith('p-') ||
+        id.startsWith('p1') ||
+        id.startsWith('p2') ||
+        id.startsWith('p3') ||
+        id === 'p-1' ||
+        data?.creator?.handle === '@laith_ai' ||
+        data?.creator?.handle === '@ahmed_uiux' ||
+        data?.creator?.handle === '@sara_cyber' ||
+        data?.creator?.handle === '@omar_flux' ||
+        data?.creator?.handle === '@dr_yasmin_ai' ||
+        data?.creator?.handle === '@khalid_animator' ||
+        data?.creator?.handle === '@reem_photo' ||
+        data?.creator?.handle === '@zayd_3d' ||
+        data?.creator?.handle === '@mira_game'
+      ) {
+        await deleteDoc(doc(db, 'prompts', id));
       }
     }
 
     const usersSnap = await getDocs(collection(db, 'users'));
-    if (usersSnap.empty) {
-      console.log('Seeding initial users into Firestore...');
-      for (const u of initialUsers) {
-        await setDoc(doc(db, 'users', u.id), u);
+    for (const docSnap of usersSnap.docs) {
+      const id = docSnap.id;
+      if (id.startsWith('u-')) {
+        await deleteDoc(doc(db, 'users', id));
+      }
+    }
+  } catch (e) {
+    console.warn('Purge mock note:', e);
+  }
+}
+
+// Batch Seed helper ONLY for categories and site settings
+export async function seedInitialDataIfEmpty(
+  initialCategories: HubCategory[],
+  initialSettings: SiteSettings
+) {
+  try {
+    const categoriesSnap = await getDocs(collection(db, 'categories'));
+    if (categoriesSnap.empty) {
+      for (const cat of initialCategories) {
+        await setDoc(doc(db, 'categories', cat.id), cat);
       }
     }
 

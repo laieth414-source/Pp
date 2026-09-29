@@ -9,6 +9,7 @@ interface AuthModalProps {
   onClose: () => void;
   lang: Language;
   onAuthSuccess?: (user: any) => void;
+  onOpenAdminAuth?: () => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -16,7 +17,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialMode,
   onClose,
   lang,
-  onAuthSuccess
+  onAuthSuccess,
+  onOpenAdminAuth,
 }) => {
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
@@ -49,16 +51,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         onClose();
       }, 1500);
     } catch (err: any) {
-      console.error('Firebase Auth Error:', err);
-      let message = err?.message || 'حدث خطأ أثناء المصادقة';
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        message = isAr ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة' : 'Invalid email or password';
+      console.warn('[Firebase Auth Info]:', err?.code || err?.message);
+      let message = err?.message || (isAr ? 'حدث خطأ أثناء المصادقة' : 'Authentication error');
+      if (
+        err.code === 'auth/user-not-found' ||
+        err.code === 'auth/wrong-password' ||
+        err.code === 'auth/invalid-credential'
+      ) {
+        message = isAr
+          ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة، أو ربما لم تنشئ حساباً بعد بهذا البريد.'
+          : 'Invalid email or password, or account may not exist yet.';
       } else if (err.code === 'auth/email-already-in-use') {
-        message = isAr ? 'هذا البريد الإلكتروني مسجل مسبقاً' : 'This email is already in use';
+        message = isAr
+          ? 'هذا البريد الإلكتروني مسجل مسبقاً، يرجى التبديل لتسجيل الدخول.'
+          : 'This email is already in use. Please switch to Sign In.';
       } else if (err.code === 'auth/weak-password') {
         message = isAr ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : 'Password must be at least 6 characters';
+      } else if (err.code === 'auth/invalid-email') {
+        message = isAr ? 'صيغة البريد الإلكتروني غير صالحة' : 'Invalid email address';
       } else if (err.code === 'auth/popup-closed-by-user') {
         message = isAr ? 'تم إغلاق نافذة تسجيل الدخول' : 'Sign-in popup was closed';
+      } else if (err.code === 'auth/operation-not-allowed') {
+        message = isAr
+          ? 'تسجيل الدخول بالبريد غير مفعّل، يمكنك استخدام زر المتابعة بحساب Google.'
+          : 'Email sign-in is disabled. Please continue with Google.';
       }
       setErrorMsg(message);
     } finally {
@@ -145,11 +161,41 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </p>
             </div>
 
-            {/* Error Message Box */}
+            {/* Error Message Box with Actionable Switch */}
             {errorMsg && (
-              <div className="mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-2.5 text-xs text-red-300">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
-                <span>{errorMsg}</span>
+              <div className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 space-y-2 text-xs text-red-300">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
+                  <span className="leading-relaxed">{errorMsg}</span>
+                </div>
+                {mode === 'login' && errorMsg.includes(isAr ? 'لم تنشئ حساباً بعد' : 'account may not exist') && (
+                  <div className="pt-1 flex items-center justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('signup');
+                        setErrorMsg(null);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-200 text-xs font-semibold cursor-pointer transition-colors"
+                    >
+                      {isAr ? 'التبديل إلى إنشاء حساب جديد بهذا البريد 🚀' : 'Switch to Create Account with this email 🚀'}
+                    </button>
+                  </div>
+                )}
+                {mode === 'signup' && errorMsg.includes(isAr ? 'مسجل مسبقاً' : 'already in use') && (
+                  <div className="pt-1 flex items-center justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('login');
+                        setErrorMsg(null);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-200 text-xs font-semibold cursor-pointer transition-colors"
+                    >
+                      {isAr ? 'التبديل إلى تسجيل الدخول بهذا البريد 🔑' : 'Switch to Sign In 🔑'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -179,15 +225,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
-            {/* Google Social Login */}
-            <div className="mb-6">
+            {/* Option A (Primary): Large Branded Google Login Button */}
+            <div className="mb-5">
               <button
                 type="button"
                 disabled={loading}
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-medium text-slate-200 transition-all cursor-pointer shadow-sm hover:border-purple-500/40"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/[0.08] hover:bg-violet-600/20 border border-white/15 hover:border-violet-500/50 text-xs sm:text-sm font-semibold text-white transition-all cursor-pointer shadow-md hover:shadow-[0_0_20px_rgba(139,92,246,0.25)] active:scale-[0.99] min-h-[46px]"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
                     d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.04h3.88c2.27-2.09 3.66-5.17 3.66-9.14z"
@@ -205,14 +251,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.69 1.28 6.6l4 3.13c.95-2.84 3.6-4.98 6.72-4.98z"
                   />
                 </svg>
-                <span>{isAr ? 'المتابعة باستخدام حساب Google' : 'Continue with Google'}</span>
+                <span>{isAr ? 'تسجيل الدخول السريع عبر Google' : 'Quick Sign In with Google'}</span>
               </button>
             </div>
 
-            <div className="relative flex items-center justify-center mb-6">
+            {/* Divider */}
+            <div className="relative flex items-center justify-center mb-5">
               <div className="border-t border-white/[0.08] w-full" />
-              <span className="bg-[#090A14] px-3 text-[11px] font-mono text-slate-400 shrink-0">
-                {isAr ? 'أو بالبريد الإلكتروني' : 'or with email'}
+              <span className="bg-[#13141c] px-3 text-[11px] font-mono text-slate-400 shrink-0">
+                {isAr ? 'أو عبر البريد الإلكتروني' : 'or with email'}
               </span>
             </div>
 
@@ -287,6 +334,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 )}
               </button>
             </form>
+
+            {/* Admin Secret Access Link */}
+            {onOpenAdminAuth && (
+              <div className="mt-5 pt-3.5 border-t border-white/[0.06] flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenAdminAuth();
+                  }}
+                  className="text-[11px] text-slate-500 hover:text-violet-400 transition-colors inline-flex items-center gap-1.5 cursor-pointer py-1 px-2 rounded-lg hover:bg-white/[0.03]"
+                >
+                  <Lock className="w-3 h-3 text-slate-500 group-hover:text-violet-400" />
+                  <span>{isAr ? 'تسجيل دخول الإدارة 🔒' : 'Master Admin Portal 🔒'}</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 

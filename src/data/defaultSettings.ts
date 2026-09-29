@@ -24,4 +24,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     aboutText: 'المنصة الأولى عربياً لاكتشاف ومشاركة أقوى برومبتات الذكاء الاصطناعي بدقة متناهية.',
     copyright: '© 2026 سَوّيها - جميع الحقوق محفوظة',
   },
+  theme: {
+    accentColor: 'violet',
+    bgColor: 'obsidian',
+  },
 };

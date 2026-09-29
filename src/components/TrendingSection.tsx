@@ -14,7 +14,7 @@ interface TrendingSectionProps {
   onToggleLike: (id: string, e: React.MouseEvent) => void;
   onToggleSave: (id: string, e: React.MouseEvent) => void;
   onResetFilters?: () => void;
-  onCopyPrompt?: (promptText: string) => void;
+  onCopyPrompt?: (promptOrText: PromptItem | string) => void;
 }
 
 const CATEGORIES = [

@@ -13,6 +13,9 @@ import { INITIAL_ADMIN_USERS } from './data/mockUsers';
 import { AnnouncementBar } from './components/AnnouncementBar';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
+import { ShowcaseHero, ModelFilter } from './components/ShowcaseHero';
+import { CategoryPillsBar, CategoryPillId } from './components/CategoryPillsBar';
+import { PublicPromptsGrid } from './components/PublicPromptsGrid';
 import { Footer } from './components/Footer';
 import { PromptDetailModal } from './components/PromptDetailModal';
 import { SearchModal } from './components/SearchModal';
@@ -25,8 +28,10 @@ import { LatestHighlights } from './components/LatestHighlights';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AdminAuthGateModal } from './components/AdminAuthGateModal';
 import { UnauthorizedDomainModal } from './components/UnauthorizedDomainModal';
+import { UserWorkspace } from './components/UserWorkspace';
 import {
   auth,
+  db,
   onAuthStateChanged,
   type FirebaseUser,
   loginWithGoogle,
@@ -46,7 +51,9 @@ import {
   saveCategoriesToFirestore,
   seedInitialDataIfEmpty,
   testFirebaseConnection,
+  purgeMockDataFromFirestore,
 } from './lib/firebase';
+import { doc, updateDoc, increment } from 'firebase/firestore';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('ar');
@@ -73,18 +80,34 @@ export default function App() {
   const [prompts, setPrompts] = useState<PromptItem[]>(() => {
     try {
       const saved = localStorage.getItem('sawihaa_prompts');
-      return saved ? JSON.parse(saved) : PROMPTS_DATA;
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      if (!Array.isArray(parsed)) return [];
+      const cleaned = parsed.filter(
+        (p) =>
+          !p.id?.startsWith('p-') &&
+          !p.id?.startsWith('p1') &&
+          !p.id?.startsWith('p2') &&
+          !p.id?.startsWith('p3') &&
+          p.creator?.handle !== '@laith_ai' &&
+          p.creator?.handle !== '@ahmed_uiux' &&
+          p.creator?.handle !== '@sara_cyber'
+      );
+      if (cleaned.length !== parsed.length) {
+        localStorage.setItem('sawihaa_prompts', JSON.stringify(cleaned));
+      }
+      return cleaned;
     } catch {
-      return PROMPTS_DATA;
+      return [];
     }
   });
 
   const [users, setUsers] = useState<AdminUser[]>(() => {
     try {
       const saved = localStorage.getItem('sawihaa_admin_users');
-      return saved ? JSON.parse(saved) : INITIAL_ADMIN_USERS;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return INITIAL_ADMIN_USERS;
+      return [];
     }
   });
 
@@ -104,8 +127,11 @@ export default function App() {
   const [isDomainModalOpen, setIsDomainModalOpen] = useState(false);
 
   // Navigation and UI state
+  type ActiveView = 'public' | 'user_dashboard';
+  const [currentView, setCurrentView] = useState<ActiveView>('public');
   const [selectedPrompt, setSelectedPrompt] = useState<PromptItem | null>(null);
   const [activeHubId, setActiveHubId] = useState<string | null>(null);
+  const [isUserWorkspaceOpen, setIsUserWorkspaceOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -117,21 +143,44 @@ export default function App() {
   });
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedModel, setSelectedModel] = useState<ModelFilter>('all');
+  const [selectedCategoryPill, setSelectedCategoryPill] = useState<CategoryPillId>('all');
+  const isInitialAuthHydration = useRef(true);
 
-  // 1. Firebase Auth listener
+  // Seamless View Switch Helpers
+  const switchToUserWorkspace = () => {
+    setCurrentView('user_dashboard');
+    setIsUserWorkspaceOpen(true);
+    setActiveHubId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const switchToPublicFeed = () => {
+    setCurrentView('public');
+    setIsUserWorkspaceOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 1. Firebase Auth listener with automatic redirection on sign-in
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      const isFreshSignIn = !currentUser && user && !isInitialAuthHydration.current;
       setCurrentUser(user);
       if (user) {
         // Auto grant admin gate if user email matches admin or role
         if (user.email === 'laieth772@gmail.com') {
           setIsAdminAuthenticated(true);
         }
+        // Auto-redirect to User Workspace upon successful sign-in
+        if (isFreshSignIn) {
+          switchToUserWorkspace();
+        }
       }
+      isInitialAuthHydration.current = false;
     });
 
     return () => unsubscribeAuth();
-  }, []);
+  }, [currentUser]);
 
   // Listen for #admin route in URL
   useEffect(() => {
@@ -154,7 +203,8 @@ export default function App() {
     testFirebaseConnection().then((connected) => {
       setIsFirebaseConnected(connected);
       if (connected) {
-        seedInitialDataIfEmpty(PROMPTS_DATA, INITIAL_ADMIN_USERS, CATEGORY_HUBS, DEFAULT_SITE_SETTINGS);
+        purgeMockDataFromFirestore().catch(() => {});
+        seedInitialDataIfEmpty(CATEGORY_HUBS, DEFAULT_SITE_SETTINGS);
       }
     });
   }, []);
@@ -163,7 +213,7 @@ export default function App() {
   useEffect(() => {
     const unsubPrompts = subscribeToPrompts(
       (firestorePrompts) => {
-        if (firestorePrompts && firestorePrompts.length > 0) {
+        if (Array.isArray(firestorePrompts)) {
           setPrompts(firestorePrompts);
           try {
             localStorage.setItem('sawihaa_prompts', JSON.stringify(firestorePrompts));
@@ -189,7 +239,7 @@ export default function App() {
 
     const unsubUsers = subscribeToUsers(
       (firestoreUsers) => {
-        if (firestoreUsers && firestoreUsers.length > 0) {
+        if (Array.isArray(firestoreUsers)) {
           setUsers(firestoreUsers);
           try {
             localStorage.setItem('sawihaa_admin_users', JSON.stringify(firestoreUsers));
@@ -300,7 +350,8 @@ export default function App() {
   };
 
   const handleOpenAdminTrigger = () => {
-    if (isAdminAuthenticated) {
+    if (isAdminAuthenticated || currentUser?.email === 'laieth772@gmail.com') {
+      setIsAdminAuthenticated(true);
       setIsAdminOpen(true);
     } else {
       setIsAdminAuthGateOpen(true);
@@ -333,10 +384,12 @@ export default function App() {
   const handleGoogleLoginDirect = async () => {
     try {
       const user = await loginWithGoogle();
+      setCurrentUser(user);
+      switchToUserWorkspace();
       triggerToast(
         lang === 'ar'
-          ? `مرحباً بك ${user.displayName || 'عزيزنا المبدع'}! تم الدخول وحفظ حسابك بنجاح 🎉`
-          : `Welcome ${user.displayName || 'Creator'}! Logged in & synced 🎉`
+          ? `مرحباً بك ${user.displayName || 'عزيزنا المبدع'}! تم الدخول ونقلك إلى مساحة عملك 🚀`
+          : `Welcome ${user.displayName || 'Creator'}! Redirected to your workspace 🚀`
       );
     } catch (err: any) {
       if (err?.code === 'auth/unauthorized-domain') {
@@ -356,19 +409,24 @@ export default function App() {
     };
     setCurrentUser(demoUser);
     setIsAdminAuthenticated(true);
+    switchToUserWorkspace();
     triggerToast(
       lang === 'ar'
-        ? 'تم تفعيل جلسة المبدع والمدير بنجاح! يمكنك الآن تجربة كافة الميزات 🚀'
-        : 'Demo creator & admin session active! 🚀'
+        ? 'تم تفعيل جلسة المبدع والانتقال إلى مساحة العمل! يمكنك الآن تجربة كافة الميزات 🚀'
+        : 'Demo creator session active! Redirected to your workspace 🚀'
     );
   };
 
   const handleLogoutFirebaseUser = async () => {
     try {
       await logoutUser();
+      setCurrentUser(null);
+      switchToPublicFeed();
       triggerToast(lang === 'ar' ? 'تم تسجيل الخروج بنجاح 👋' : 'Logged out successfully 👋');
     } catch (err) {
-      console.error(err);
+      console.warn('Logout issue:', err);
+      setCurrentUser(null);
+      switchToPublicFeed();
     }
   };
 
@@ -406,24 +464,74 @@ export default function App() {
     }, 3200);
   };
 
-  const handleCopyPrompt = (promptText: string) => {
-    navigator.clipboard.writeText(promptText);
-    triggerToast(lang === 'ar' ? 'تم نسخ البرومبت إلى الحافظة! ✓' : 'Prompt copied to clipboard! ✓');
+  const handleCopyPrompt = async (promptOrText: PromptItem | string) => {
+    let text = '';
+    let promptId: string | null = null;
+    if (typeof promptOrText === 'string') {
+      text = promptOrText;
+      const matched = prompts.find((p) => p.promptText === promptOrText);
+      if (matched) promptId = matched.id;
+    } else if (promptOrText && typeof promptOrText === 'object') {
+      text = promptOrText.promptText;
+      promptId = promptOrText.id;
+    }
+
+    if (text) {
+      navigator.clipboard.writeText(text);
+    }
+    triggerToast(lang === 'ar' ? 'تم نسخ البرومبت بنجاح! ✓' : 'Prompt copied to clipboard! ✓');
+
+    if (promptId) {
+      // 1. Optimistic update to reflect dynamically in admin analytics without page reload
+      setPrompts((prev) =>
+        prev.map((p) =>
+          p.id === promptId ? { ...p, copyCount: (p.copyCount || 0) + 1 } : p
+        )
+      );
+
+      // 2. Real Firestore counter increment
+      try {
+        await updateDoc(doc(db, 'prompts', promptId), {
+          copyCount: increment(1),
+        });
+      } catch (e) {
+        console.warn('Firestore copyCount increment error:', e);
+      }
+    }
   };
 
   const handleSubmitNewPrompt = async (newPrompt: PromptItem) => {
+    const isSubmittedByAdmin =
+      newPrompt.status === 'approved' ||
+      newPrompt.creator?.id === 'admin-master' ||
+      Boolean(
+        currentUser &&
+        (currentUser.email === 'laieth772@gmail.com' ||
+         currentUser.email?.includes('admin') ||
+         users.some((u: AdminUser) => u.email === currentUser.email && u.role === 'admin'))
+      );
+
+    const finalStatus = isSubmittedByAdmin
+      ? 'approved'
+      : (newPrompt.status === 'private' ? 'private' : 'pending');
+    const finalIsFeatured = isSubmittedByAdmin ? true : false;
+
     // If logged in, attach real user info
     const enrichedPrompt: PromptItem = {
       ...newPrompt,
+      category: (newPrompt.category || 'بورتريه ووجوه').trim(),
+      status: finalStatus,
+      isFeatured: finalIsFeatured,
+      featured: finalIsFeatured,
       creator: currentUser
         ? {
             id: currentUser.uid,
             name: currentUser.displayName || currentUser.email?.split('@')[0] || 'Member',
             handle: `@${currentUser.email?.split('@')[0] || 'member'}`,
             avatar: currentUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.uid}`,
-            badge: '⚡ عضو نشط',
-            roleAr: 'صانع محتوى',
-            roleEn: 'Prompt Creator',
+            badge: isSubmittedByAdmin ? '👑 مسؤول رسمي' : '⚡ عضو نشط',
+            roleAr: isSubmittedByAdmin ? 'إدارة رسمية' : 'صانع محتوى',
+            roleEn: isSubmittedByAdmin ? 'Admin' : 'Prompt Creator',
             promptCount: 1,
             followers: 1,
             verified: true,
@@ -438,13 +546,24 @@ export default function App() {
       localStorage.setItem('sawihaa_prompts', JSON.stringify(updated));
     } catch {}
 
-    // Permanent Firestore Write
+    if (finalStatus === 'approved') {
+      triggerToast(lang === 'ar' ? 'تم نشر البرومبت فورياً وبنجاح! 🚀' : 'Prompt published immediately! 🚀');
+    } else if (finalStatus === 'private') {
+      triggerToast(lang === 'ar' ? 'تم حفظ البرومبت في حسابك الشخصي 🔒' : 'Prompt saved to your private library 🔒');
+    } else {
+      triggerToast(
+        lang === 'ar'
+          ? 'تم إرسال البرومبت بنجاح! سينشر في الصفحة الرئيسية بعد موافقة الإدارة ⏳'
+          : 'Prompt submitted for review! It will be published upon approval ⏳'
+      );
+    }
+
+    // Permanent Firestore Write asynchronously
     try {
       await savePromptToFirestore(enrichedPrompt);
-      triggerToast(lang === 'ar' ? 'تم حفظ ونشر البرومبت في Firebase بنجاح! 🚀' : 'Prompt saved to Firebase Firestore! 🚀');
     } catch (err) {
       console.warn('Firestore prompt write error:', err);
-      triggerToast(lang === 'ar' ? 'تم نشر البرومبت محلياً وجاري المزامنة...' : 'Published locally, syncing...');
+      triggerToast(lang === 'ar' ? 'تم الحفظ محلياً وجاري المزامنة...' : 'Saved locally, syncing...');
     }
 
     if (newPrompt.hubId) {
@@ -524,8 +643,123 @@ export default function App() {
     }
   };
 
+  // Filter prompts for public Home Feed:
+  // Prompts show on Home if explicitly featured OR if isFeatured is undefined (legacy backward-compatibility)
+  const publicPrompts = prompts.filter((p) => {
+    const isApproved = p.status === 'approved' || p.status === undefined;
+    const isHomeVisible = p.isFeatured === true || p.isFeatured === undefined;
+    return isApproved && isHomeVisible;
+  });
+
+  // Real-time Category Counts for the pills bar
+  const categoryCounts: Record<string, number> = {
+    all: publicPrompts.length,
+    'بورتريه ووجوه': 0,
+    'سينمائي ودرامي': 0,
+    'أنمي وفانتازيا': 0,
+    'تصميم تجاري': 0,
+    'شخصيات 3D': 0,
+    'سايبربانك وخيال علمي': 0,
+    'برمجة وكود': 0,
+  };
+
+  publicPrompts.forEach((p) => {
+    const c = p.category || '';
+    if (categoryCounts[c] !== undefined) {
+      categoryCounts[c]++;
+    } else {
+      const h = (p.hubId || '').toLowerCase();
+      const catLower = c.toLowerCase();
+      if (h === 'portrait' || catLower.includes('بورتريه') || catLower.includes('portrait')) categoryCounts['بورتريه ووجوه']++;
+      else if (h === 'cinematic' || catLower.includes('سينما') || catLower.includes('cinematic')) categoryCounts['سينمائي ودرامي']++;
+      else if (h === 'anime' || catLower.includes('أنمي') || catLower.includes('anime')) categoryCounts['أنمي وفانتازيا']++;
+      else if (catLower.includes('تجاري') || catLower.includes('commercial')) categoryCounts['تصميم تجاري']++;
+      else if (h === '3d' || h === '3d-design' || catLower.includes('3d') || catLower.includes('ثلاثي')) categoryCounts['شخصيات 3D']++;
+      else if (h === 'cyberpunk' || catLower.includes('سايبر') || catLower.includes('cyber')) categoryCounts['سايبربانك وخيال علمي']++;
+      else if (h === 'code-dev' || h === 'code' || catLower.includes('برمج') || catLower.includes('كود') || catLower.includes('code')) categoryCounts['برمجة وكود']++;
+    }
+  });
+
+  // Filtered Public Prompts for High-Performance Showcase
+  const filteredPublicPrompts = publicPrompts.filter((prompt) => {
+    // 1. Text Search Filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchesTitle =
+        prompt.titleAr?.toLowerCase().includes(q) ||
+        prompt.titleEn?.toLowerCase().includes(q);
+      const matchesPrompt = prompt.promptText?.toLowerCase().includes(q);
+      const matchesModel = prompt.model?.toLowerCase().includes(q);
+      const matchesAuthor = prompt.creator?.name?.toLowerCase().includes(q);
+      const matchesTags = prompt.tags?.some((t) => t.toLowerCase().includes(q));
+      if (!matchesTitle && !matchesPrompt && !matchesModel && !matchesAuthor && !matchesTags) {
+        return false;
+      }
+    }
+
+    // 2. Model Filter
+    if (selectedModel !== 'all') {
+      const m = selectedModel.toLowerCase();
+      if (!prompt.model?.toLowerCase().includes(m)) {
+        return false;
+      }
+    }
+
+    // 3. Category Pill Filter
+    const activeCategory = (selectedCategoryPill || 'الكل').trim();
+    if (activeCategory !== 'all' && activeCategory !== 'الكل') {
+      if (prompt.category?.trim() === activeCategory) {
+        return true;
+      }
+
+      // Backward compatibility matching with hubId or legacy category string
+      const hubId = (prompt.hubId || '').toLowerCase();
+      const pCat = (prompt.category || '').toLowerCase();
+      if (activeCategory === 'بورتريه ووجوه' && (hubId === 'portrait' || pCat.includes('بورتريه') || pCat.includes('portrait'))) return true;
+      if (activeCategory === 'سينمائي ودرامي' && (hubId === 'cinematic' || pCat.includes('سينما') || pCat.includes('cinematic'))) return true;
+      if (activeCategory === 'أنمي وفانتازيا' && (hubId === 'anime' || pCat.includes('أنمي') || pCat.includes('anime'))) return true;
+      if (activeCategory === 'تصميم تجاري' && (pCat.includes('تجاري') || pCat.includes('commercial'))) return true;
+      if (activeCategory === 'شخصيات 3D' && (hubId === '3d' || hubId === '3d-design' || pCat.includes('3d') || pCat.includes('ثلاثي'))) return true;
+      if (activeCategory === 'سايبربانك وخيال علمي' && (hubId === 'cyberpunk' || pCat.includes('سايبر') || pCat.includes('cyber'))) return true;
+      if (activeCategory === 'برمجة وكود' && (hubId === 'code-dev' || hubId === 'code' || pCat.includes('برمج') || pCat.includes('كود') || pCat.includes('code'))) return true;
+
+      return false;
+    }
+
+    return true;
+  });
+
+  // Dynamic Theme Palette Map
+  const ACCENT_COLORS: Record<string, { primary: string; hover: string; border: string }> = {
+    violet: { primary: '#8b5cf6', hover: '#7c3aed', border: 'rgba(139, 92, 246, 0.4)' },
+    cyber_blue: { primary: '#0ea5e9', hover: '#0284c7', border: 'rgba(14, 165, 233, 0.4)' },
+    neon_green: { primary: '#10b981', hover: '#059669', border: 'rgba(16, 185, 129, 0.4)' },
+    fire_red: { primary: '#ef4444', hover: '#dc2626', border: 'rgba(239, 68, 68, 0.4)' },
+    gold: { primary: '#f59e0b', hover: '#d97706', border: 'rgba(245, 158, 11, 0.4)' },
+    crystal_white: { primary: '#f8fafc', hover: '#e2e8f0', border: 'rgba(248, 250, 252, 0.4)' },
+  };
+
+  const BG_COLORS: Record<string, string> = {
+    obsidian: '#090a0f',
+    deep_navy: '#060b17',
+  };
+
+  useEffect(() => {
+    const accent = ACCENT_COLORS[siteSettings.theme?.accentColor || 'violet'] || ACCENT_COLORS.violet;
+    const bg = BG_COLORS[siteSettings.theme?.bgColor || 'obsidian'] || BG_COLORS.obsidian;
+    document.documentElement.style.setProperty('--color-brand-primary', accent.primary);
+    document.documentElement.style.setProperty('--color-brand-hover', accent.hover);
+    document.documentElement.style.setProperty('--color-brand-border', accent.border);
+    document.documentElement.style.setProperty('--color-app-bg', bg);
+  }, [siteSettings.theme]);
+
+  const currentBgColor = BG_COLORS[siteSettings.theme?.bgColor || 'obsidian'] || '#090a0f';
+
   return (
-    <div className={`min-h-screen bg-[#090a0f] text-[#f8fafc] selection:bg-violet-600/30 selection:text-violet-200 transition-colors duration-200 ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
+    <div
+      className={`min-h-screen text-[#f8fafc] selection:bg-violet-600/30 selection:text-violet-200 transition-colors duration-200 ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}
+      style={{ backgroundColor: currentBgColor }}
+    >
       
       {/* Dynamic Announcement Top Bar */}
       <AnnouncementBar
@@ -539,23 +773,36 @@ export default function App() {
         lang={lang}
         branding={siteSettings.branding}
         currentUser={currentUser}
+        currentView={currentView}
         onLogoutUser={handleLogoutFirebaseUser}
         onGoogleLogin={handleGoogleLoginDirect}
         onOpenAuth={handleOpenAuth}
         onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
-        onGoHome={() => {
-          setActiveHubId(null);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onOpenUserWorkspace={switchToUserWorkspace}
+        onGoHome={switchToPublicFeed}
       />
 
       <main>
-        {activeHubId ? (
+        {currentView === 'user_dashboard' && currentUser ? (
+          /* User Workspace Dedicated Obsidian Dashboard */
+          <UserWorkspace
+            currentUser={currentUser}
+            prompts={prompts}
+            categories={categories}
+            lang={lang}
+            onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
+            onBackToFeed={switchToPublicFeed}
+            onLogout={handleLogoutFirebaseUser}
+            onUpdatePrompts={handleUpdatePrompts}
+            onSelectPrompt={(p) => setSelectedPrompt(p)}
+            onTriggerToast={triggerToast}
+          />
+        ) : activeHubId ? (
           /* B. Dedicated Category Hub View (Filtered strictly to this category) */
           <CategoryHubView
             hubId={activeHubId}
             categories={categories}
-            prompts={prompts}
+            prompts={publicPrompts}
             lang={lang}
             onBackToDirectory={() => {
               setActiveHubId(null);
@@ -568,74 +815,57 @@ export default function App() {
             onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
           />
         ) : (
-          /* C. Clean Streamlined Directory Homepage */
-          <>
-            {/* 1. Slim Hero Section with Global Search */}
-            <HeroSection
+          /* C. Clean, Minimalist & Fast Showcase Experience */
+          <div className="animate-in fade-in duration-200">
+            {/* 1. Streamlined Hero Section */}
+            <ShowcaseHero
               lang={lang}
-              heroSettings={siteSettings.hero}
-              branding={siteSettings.branding}
-              categories={categories}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
-              onSearch={handleSearchTrigger}
-              activeCategory="all"
-              onCategoryChange={(catId) => {
-                if (catId === 'all') {
-                  setActiveHubId(null);
-                } else {
-                  setActiveHubId(catId);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-              }}
-              onSelectTag={handleSelectTag}
-              onOpenHowItWorks={() => setIsHowItWorksOpen(true)}
-              onExploreClick={handleExploreClick}
+              selectedModel={selectedModel}
+              onSelectModel={setSelectedModel}
             />
 
-            {/* 2. Grid of Category Explorer Cards ("أقسام المنصة") */}
-            <CategoryHubsGrid
-              categories={categories}
-              prompts={prompts}
+            {/* 2. Smooth Category Pills Bar */}
+            <CategoryPillsBar
               lang={lang}
-              onSelectHub={(hubId) => {
-                setActiveHubId(hubId);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              selectedCategory={selectedCategoryPill}
+              onSelectCategory={setSelectedCategoryPill}
+              counts={categoryCounts}
             />
 
-            {/* 3. Tight "أحدث الإضافات" (Top 4 latest highlights) */}
-            <div id="highlights">
-              <LatestHighlights
-                categories={categories}
-                prompts={prompts}
-                lang={lang}
-                onOpenDetail={(p) => setSelectedPrompt(p)}
-                onToggleLike={handleToggleLike}
-                onToggleSave={handleToggleSave}
-                onCopyPrompt={handleCopyPrompt}
-                onSelectHub={(hubId) => {
-                  setActiveHubId(hubId);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-              />
-            </div>
-          </>
+            {/* 3. Optimized Prompts Grid (High-Performance 60FPS) */}
+            <PublicPromptsGrid
+              prompts={filteredPublicPrompts}
+              lang={lang}
+              activeCategory={selectedCategoryPill}
+              activeModel={selectedModel}
+              onSelectPrompt={(p) => setSelectedPrompt(p)}
+              onCopyPrompt={handleCopyPrompt}
+              onResetFilters={() => {
+                setSearchQuery('');
+                setSelectedModel('all');
+                setSelectedCategoryPill('all');
+              }}
+            />
+          </div>
         )}
       </main>
 
-      {/* Minimalist Obsidian Footer */}
-      <Footer
-        lang={lang}
-        branding={siteSettings.branding}
-        footerSettings={siteSettings.footer}
-        onOpenAdmin={handleOpenAdminTrigger}
-      />
+      {/* Minimalist Obsidian Footer - hidden during immersive user workspace */}
+      {!isUserWorkspaceOpen && (
+        <Footer
+          lang={lang}
+          branding={siteSettings.branding}
+          footerSettings={siteSettings.footer}
+          onOpenAdmin={handleOpenAdminTrigger}
+        />
+      )}
 
       {/* Interactive Modals */}
       <PromptDetailModal
         prompt={selectedPrompt}
-        allPrompts={prompts}
+        allPrompts={publicPrompts}
         lang={lang}
         onClose={() => setSelectedPrompt(null)}
         onToggleLike={handleToggleLike}
@@ -648,7 +878,7 @@ export default function App() {
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        prompts={prompts}
+        prompts={publicPrompts}
         lang={lang}
         onSelectPrompt={(p) => setSelectedPrompt(p)}
       />
@@ -659,8 +889,15 @@ export default function App() {
         onClose={() => setAuthModalState({ ...authModalState, isOpen: false })}
         lang={lang}
         onAuthSuccess={(user) => {
-          triggerToast(lang === 'ar' ? `مرحباً بك ${user?.displayName || user?.email?.split('@')[0] || ''} 🎉` : `Welcome ${user?.displayName || 'back'}! 🎉`);
+          if (user) setCurrentUser(user);
+          switchToUserWorkspace();
+          triggerToast(
+            lang === 'ar'
+              ? `مرحباً بك ${user?.displayName || user?.email?.split('@')[0] || 'عزيزنا المبدع'}! تم الدخول ونقلك إلى مساحة عملك 🚀`
+              : `Welcome ${user?.displayName || 'back'}! Redirected to your workspace 🚀`
+          );
         }}
+        onOpenAdminAuth={handleOpenAdminTrigger}
       />
 
       <HowItWorksModal

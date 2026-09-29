@@ -13,7 +13,7 @@ interface CategoryHubViewProps {
   onOpenDetail: (prompt: PromptItem) => void;
   onToggleLike: (id: string, e: React.MouseEvent) => void;
   onToggleSave: (id: string, e: React.MouseEvent) => void;
-  onCopyPrompt?: (promptText: string) => void;
+  onCopyPrompt?: (promptOrText: PromptItem | string) => void;
   onOpenSubmitModal?: () => void;
 }
 
@@ -42,8 +42,26 @@ export const CategoryHubView: React.FC<CategoryHubViewProps> = ({
     iconName: 'Sparkles',
   };
 
-  // Filter prompts strictly belonging to this category hub
-  const hubPrompts = prompts.filter((p) => getPromptHubId(p, categories) === currentHub.id);
+  // Filter prompts strictly belonging to this category hub and approved (regardless of isFeatured)
+  const hubPrompts = prompts.filter((p) => {
+    if (p.status !== 'approved') return false;
+    const catId = currentHub.id.toLowerCase();
+    const pCatId = ((p as any).categoryId || '').toLowerCase();
+    const pHubId = (p.hubId || '').toLowerCase();
+    const pCat = ((p as any).category || '').toLowerCase();
+    const catNameAr = (currentHub.titleAr || '').toLowerCase();
+    const catNameEn = (currentHub.titleEn || (currentHub as any).name || '').toLowerCase();
+
+    return (
+      catId === 'all' ||
+      pHubId === catId ||
+      pCatId === catId ||
+      pCat === catId ||
+      pCat === catNameAr ||
+      pCat === catNameEn ||
+      getPromptHubId(p, categories) === currentHub.id
+    );
+  });
 
   // Apply scoped search and model filter within this category
   const filteredPrompts = hubPrompts.filter((prompt) => {
@@ -244,30 +262,28 @@ export const CategoryHubView: React.FC<CategoryHubViewProps> = ({
         {filteredPrompts.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 sm:p-16 rounded-3xl bg-[#0B0C15]/80 border border-white/[0.08] text-center space-y-4 my-4">
             <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-2xl">
-              🔍
+              ✨
             </div>
             <div className="space-y-1">
               <h3 className="text-lg sm:text-xl font-bold text-white">
                 {isAr
-                  ? 'لم يتم العثور على برومبتات في هذا القسم'
-                  : 'No prompts found in this hub'}
+                  ? 'لا توجد برومبتات مضافة حالياً. ابدأ بإضافة أول برومبت الآن!'
+                  : 'No prompts added yet. Start by adding your first prompt now!'}
               </h3>
               <p className="text-slate-400 text-xs sm:text-sm max-w-md mx-auto">
                 {isAr
-                  ? 'جرب البحث بكلمة مختلفة أو قم بإلغاء التصفية لعرض كافة برومبتات القسم.'
-                  : 'Try modifying your search term or reset filters to display all hub items.'}
+                  ? 'شارك أول برومبت ذكاء اصطناعي سينمائي ومميز في هذا القسم.'
+                  : 'Be the first to publish a prompt in this category!'}
               </p>
             </div>
-            <button
-              onClick={() => {
-                setScopedSearch('');
-                setSelectedModelFilter('all');
-              }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-purple-600/40 border border-purple-500/40 hover:bg-purple-600/60 transition-all cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>{isAr ? 'إعادة ضبط البحث' : 'Reset Hub Search'}</span>
-            </button>
+            {onOpenSubmitModal && (
+              <button
+                onClick={onOpenSubmitModal}
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-violet-600 hover:bg-violet-500 shadow-md transition-all cursor-pointer"
+              >
+                <span>+ {isAr ? 'إضافة أول برومبت' : 'Add First Prompt'}</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

@@ -36,8 +36,13 @@ export interface PromptItem {
   creator: Creator;
   visualType: 'cyber_oasis' | 'mecha_warrior' | 'luxury_hypercar' | 'digital_fashion' | 'cinematic_director' | 'ancient_futuristic' | 'neon_dragon' | 'ai_code_agent' | string;
   featured?: boolean;
+  isFeatured?: boolean;
   createdAt: string;
   imageUrl?: string;
+  status?: 'approved' | 'pending' | 'rejected' | 'private';
+  submissionTarget?: 'private' | 'public' | 'both';
+  rejectionReason?: string | null;
+  copyCount?: number;
 }
 
 export interface HubCategory {
@@ -80,11 +85,17 @@ export interface FooterSettings {
   copyright: string;
 }
 
+export interface ThemeSettings {
+  accentColor: string;
+  bgColor: string;
+}
+
 export interface SiteSettings {
   branding: BrandingSettings;
   hero: HeroSettings;
   announcement: AnnouncementSettings;
   footer: FooterSettings;
+  theme?: ThemeSettings;
 }
 
 export interface AdminUser {

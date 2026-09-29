@@ -25,7 +25,7 @@ interface PromptDetailModalProps {
   onToggleSave: (id: string, e: React.MouseEvent) => void;
   onSelectPrompt?: (prompt: PromptItem) => void;
   onOpenAuth?: (mode: 'login' | 'signup') => void;
-  onCopyPrompt?: (promptText: string) => void;
+  onCopyPrompt?: (promptOrText: PromptItem | string) => void;
 }
 
 export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
@@ -52,7 +52,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
     setCopiedPrompt(true);
     setTimeout(() => setCopiedPrompt(false), 2200);
     if (onCopyPrompt) {
-      onCopyPrompt(prompt.promptText);
+      onCopyPrompt(prompt);
     }
   };
 

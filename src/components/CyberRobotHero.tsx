@@ -53,7 +53,7 @@ export const CyberRobotHero: React.FC<CyberRobotHeroProps> = ({ lang }) => {
   return (
     /* Relative auto-centering container for robot and neatly arranged floating badges */
     <div
-      className="relative flex items-center justify-center min-w-[280px] max-w-[380px] mx-auto select-none py-3 sm:py-4 px-3"
+      className="relative flex items-center justify-center w-full max-w-[280px] sm:max-w-[340px] md:max-w-[380px] mx-auto select-none py-3 px-2"
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
@@ -71,26 +71,26 @@ export const CyberRobotHero: React.FC<CyberRobotHeroProps> = ({ lang }) => {
       {/* Badges and robot rendered with clean performant surfaces */}
       {/* Badge 1: Top right (above head) */}
       <div
-        className="absolute -top-3 right-0 sm:right-2 z-20 pointer-events-auto transition-transform duration-300"
+        className="absolute -top-2 right-0 sm:right-1 z-20 pointer-events-auto transition-transform duration-300"
         style={{
           transform: isHovered
             ? `translate3d(${mousePos.x * -8}px, ${mousePos.y * 8}px, 30px)`
             : undefined,
         }}
       >
-        <div className="bg-[#13141c] border border-violet-500/30 px-3.5 py-1.5 rounded-full text-xs text-violet-200 shadow-md flex items-center gap-2 hover:border-violet-400/50 hover:bg-[#1a1c29] transition-all whitespace-nowrap">
-          <span className="flex h-2 w-2 relative">
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-400" />
+        <div className="bg-[#13141c]/95 border border-violet-500/30 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs text-violet-200 shadow-md flex items-center gap-1.5 hover:border-violet-400/50 hover:bg-[#1a1c29] transition-all whitespace-nowrap">
+          <span className="flex h-1.5 w-1.5 relative">
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-violet-400" />
           </span>
           <span className="font-semibold tracking-wide">
-            {isAr ? '✨ أكثر من 100 ألف برومبت' : '✨ 100k+ Verified Prompts'}
+            {isAr ? '✨ 100K+ برومبت' : '✨ 100k+ Prompts'}
           </span>
         </div>
       </div>
 
       {/* Badge 2: Near the neck/shoulder on the left */}
       <div
-        className="absolute top-1/3 -left-3 sm:-left-6 z-20 pointer-events-auto transition-transform duration-300"
+        className="absolute top-1/4 left-0 sm:-left-3 z-20 pointer-events-auto transition-transform duration-300"
         style={{
           transform: isHovered
             ? `translate3d(${mousePos.x * 6}px, ${mousePos.y * 6}px, 30px)`
@@ -101,8 +101,8 @@ export const CyberRobotHero: React.FC<CyberRobotHeroProps> = ({ lang }) => {
           handleClick();
         }}
       >
-        <div className="bg-[#13141c] border border-violet-500/30 px-3.5 py-1.5 rounded-full text-xs text-violet-200 shadow-md flex items-center gap-2 hover:border-violet-400/50 hover:bg-[#1a1c29] transition-all cursor-pointer whitespace-nowrap">
-          <span className="font-medium tracking-wide">
+        <div className="bg-[#13141c]/95 border border-violet-500/30 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs text-violet-200 shadow-md flex items-center gap-1.5 hover:border-violet-400/50 hover:bg-[#1a1c29] transition-all cursor-pointer whitespace-nowrap max-w-[200px] truncate">
+          <span className="font-medium tracking-wide truncate">
             {isAr ? PROMPT_TIPS[tipIndex].ar : PROMPT_TIPS[tipIndex].en}
           </span>
         </div>

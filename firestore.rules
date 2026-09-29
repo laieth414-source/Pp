@@ -24,33 +24,26 @@ service cloud.firestore {
       allow read: if true;
     }
 
-    // Prompts Collection: Publicly readable, authenticated create/update
+    // Prompts Collection: Publicly readable, allow all writes
     match /prompts/{promptId} {
-      allow read: if true;
-      allow create: if isValidId(promptId) && (
-        isSignedIn() || true // allow initial seed / guest contribution if enabled
-      );
-      allow update: if isValidId(promptId);
-      allow delete: if isSignedIn();
+      allow read, write: if true;
     }
 
     // Users Collection
     match /users/{userId} {
-      allow read: if true;
-      allow create, update: if isValidId(userId);
-      allow delete: if isSignedIn();
+      allow read, write: if true;
     }
 
     // Categories Collection
     match /categories/{categoryId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if true;
     }
 
     // Settings Collection
     match /settings/{settingId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if true;
     }
   }
 }
